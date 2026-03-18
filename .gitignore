@@ -42,3 +42,6 @@ Makefile
 
 # Blog
 blog
+
+#lsp
+.clangd
