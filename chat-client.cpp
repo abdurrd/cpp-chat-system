@@ -1,6 +1,6 @@
 /**
  * Chat Client - Phase 1: Raw POSIX Sockets
- * 
+ *
  * TCP client that connects to server
  * Uses threading for simultaneous send/receive
  */
@@ -21,7 +21,7 @@
 // TODO: Implement main function
 
 int main() {
-    // TODO: Implement client logic
-    
-    return 0;
+	// TODO: Implement client logic
+
+	return 0;
 }
