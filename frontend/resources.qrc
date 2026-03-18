@@ -1,0 +1,12 @@
+# Qt Resources
+# Defines QRC file for Qt resource system
+
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/">
+        <file>qml/Main.qml</file>
+        <file>qml/ChatBubble.qml</file>
+        <file>qml/MessageList.qml</file>
+        <file>qml/InputField.qml</file>
+    </qresource>
+</RCC>

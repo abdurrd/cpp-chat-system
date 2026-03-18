@@ -1,0 +1,44 @@
+# Build directory
+build/
+cmake-build-*/
+
+# Compiled binaries
+server
+client
+chat-app
+*.o
+*.obj
+
+# Qt generated files
+moc_*.cpp
+moc_*.h
+qrc_*.cpp
+ui_*.h
+*.moc
+
+# Qt Creator
+.idea/
+*.pro.user
+Makefile
+
+# IDE
+.vscode/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Logs
+*.log
+
+# Debug
+*.pdb
+*.dll
+*.exe
+
+# Blog
+blog
