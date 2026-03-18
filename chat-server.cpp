@@ -1,6 +1,6 @@
 /**
  * Chat Server - Phase 1: Raw POSIX Sockets
- * 
+ *
  * TCP server that handles multiple clients using select()
  * Broadcasts messages from one client to all others
  */
@@ -19,7 +19,7 @@
 #define BUFFER_SIZE 1024
 
 int main() {
-    // TODO: Implement server logic
-    
-    return 0;
+	// TODO: Implement server logic
+
+	return 0;
 }
