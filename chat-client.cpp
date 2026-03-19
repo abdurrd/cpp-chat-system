@@ -17,11 +17,24 @@
 #define BUFFER_SIZE 1024
 
 // TODO: Implement receiver thread function
+void *receive_messages(void *socket_descriptor){
+        int sock = *(static_cast<int*> (socket_descriptor));
+        char buffer[BUFFER_SIZE];
+
+        for(;;) {
+                int valread = read(sock, buffer, BUFFER_SIZE);
+                if(valread <= 0) break;
+                buffer[valread] = '\0';
+                std::cout << "received: " << buffer << "\n";
+        }
+
+        return nullptr;
+}
 
 // TODO: Implement main function
 
 int main() {
-	// TODO: Implement client logic
+
 
 	return 0;
 }
