@@ -34,7 +34,7 @@ int main() {
 
         fd_set          readfds;                        //file descriptor set for monitoring
 
-        char           buffer[BUFFER_SIZE] {0};        //buffer to store incoming messages
+        char            buffer[BUFFER_SIZE] {0};        //buffer to store incoming messages
 
         //creating the socket:
         //AF_INET: IPv4 address family
