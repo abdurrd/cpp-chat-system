@@ -6,7 +6,7 @@
 
 ## Phase 1: Core Networking (Backend)
 
-- [ ] **1.1** Set up basic chat system from blog tutorial (C++ with raw POSIX sockets)
+- [x] **1.1** Set up basic chat system from blog tutorial (C++ with raw POSIX sockets)
   - Create `server.cpp` - TCP server with `select()` for multiplexing
   - Create `client.cpp` - TCP client with pthread for send/receive
   - Configure CMake build
@@ -15,7 +15,7 @@
 
 ## Phase 2: Qt/QML Integration (GUI)
 
-- [ ] **2.1** Set up Qt development environment
+- [] **2.1** Set up Qt development environment
   - Install Qt 6 (or Qt 5.15 LTS)
   - Configure CMake with Qt components
 - [ ] **2.2** Create basic QML application window
