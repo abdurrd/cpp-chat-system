@@ -48,7 +48,7 @@ int main() {
 
         if(opt_fail)                            perror("setsockopt failed!"), exit(EXIT_FAILURE);
 
-        //setup the address structure
+        //define the address structure
         address.sin_family = AF_INET;
         address.sin_addr.s_addr = INADDR_ANY;
         address.sin_port = htons(PORT);
@@ -87,13 +87,13 @@ int main() {
                 if(FD_ISSET(server_fd, &readfds)) {
                         new_socket = accept(server_fd, nullptr, nullptr);
                         
-                        if(new_socket < 0)      perror("accept failed!"); exit(EXIT_FAILURE);
+                        if(new_socket < 0)      perror("accept failed!"), exit(EXIT_FAILURE);
                         
                         for(int i {}; i < MAX_CLIENTS; ++i){
                                 if(client_sockets[i] != 0) continue;
 
                                 client_sockets[i] = new_socket;
-                                std::cout << "New client:" << client_sockets[i] << " connected.\n"];
+                                std::cout << "New client:" << client_sockets[i] << " connected.\n";
 
                                 break;
                         }
@@ -115,9 +115,9 @@ int main() {
                         }
 
                         buffer[valread] = '\0';
-                        for(int j {}; i < MAX_CLIENTS; ++j){
+                        for(int j {}; j < MAX_CLIENTS; ++j){
                                 if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
-                                send(client_sockets[i], buffer, strlen(buffer), 0);
+                                send(client_sockets[j], buffer, strlen(buffer), 0);
                         }
                 }
 
