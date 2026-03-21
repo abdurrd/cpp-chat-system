@@ -10,8 +10,8 @@
   - Create `server.cpp` - TCP server with `select()` for multiplexing
   - Create `client.cpp` - TCP client with pthread for send/receive
   - Configure CMake build
-- [ ] **1.2** Test chat works on same machine (localhost)
-- [ ] **1.3** Test chat across different machines on same LAN
+- [x] **1.2** Test chat works on same machine (localhost)
+- [x] **1.3** Test chat across different machines on same LAN
 
 ## Phase 2: Qt/QML Integration (GUI)
 
