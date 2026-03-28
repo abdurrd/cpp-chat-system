@@ -1,5 +1,9 @@
 #include "Client.hpp"
 
+Client::~Client() {
+        close(_sock);
+}
+
 void Client::connect_to_server(){
         //creating client socket
         _sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -40,7 +44,7 @@ void *Client::receive_messages(void *socket_descriptor){
         return nullptr;
 }
 
-void Client::chat() {
+void Client::chat(User &user) {
         //create thread for receiver
         bool thread_err = pthread_create(&_thread_id, nullptr, receive_messages, static_cast<void*>(&_sock)) < 0;
 
@@ -54,8 +58,8 @@ void Client::chat() {
         }
 }
 
-bool Client::login(std::string name, std::string password) {
-        std::string s_buffer = std::to_string(LOGIN) + name + ' ' + password;
+bool Client::login_user(User &user) {
+        std::string s_buffer = std::to_string(LOGIN) + user.get_name() + ' ' + user.get_pass();
         send(_sock, s_buffer.c_str(), s_buffer.length(), 0);
 
         char res_buf[KB];

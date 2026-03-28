@@ -21,19 +21,25 @@
 #define ERR(x) perror(x), exit(EXIT_FAILURE)
 
 //USE STRING STREAMS!!!!
-
-Client client_handler;
+//Main thread: Handles user input and sends messages
+//Secondary thread: Continuously listens for incoming messages
+//This allows for real-time bidirectional communication
 
 struct Message {
-        std::string _content;
-        User _sender;
+        std::string     _content;
+        User            _sender;
 };
 
 int main() {
+        
+        User    user("alex", "123");
+        Client  client;
 
-        //Main thread: Handles user input and sends messages
-        //Secondary thread: Continuously listens for incoming messages
-        //This allows for real-time bidirectional communication
+        client.connect_to_server();
+        
+        bool login_val = client.login_user(user); if(!login_val) ERR("Login in failed");
+
+        client.chat(user);
 
 	return 0;
 }
