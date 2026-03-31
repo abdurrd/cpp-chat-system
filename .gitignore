@@ -45,3 +45,7 @@ blog
 
 #lsp
 .clangd
+
+#Doc
+docs
+docs/
