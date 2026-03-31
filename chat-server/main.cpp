@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <cstring>
 #include <unistd.h>
@@ -16,9 +17,44 @@
 #include <arpa/inet.h>
 #include <sys/select.h>
 
+#include "../utils/Io.hpp"
+
 #define PORT 8888
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
+#define KB 1024
+
+enum class Protocal {
+        LOGIN,
+        MESSAGE,
+        CREATE_GROUP,
+};
+
+class User;
+
+class UserHandler {
+        std::unordered_map<std::string_view, User*> user_hash;
+public:
+        bool login(std::string_view username, std::string_view password);
+        bool fill_data(char *data);
+
+} user_handler;
+
+class Group {
+        int _id;
+        std::vector<int> members;
+
+};
+
+class GroupHandler {
+        std::unordered_map<int, Group*> _group_hash;
+public:
+        bool send_message(std::string_view user_handler, int group_id, char message[]);
+        bool create_group(std::vector<std::string> &users);
+
+} group_handler;
+
+Io io;
 
 int main() {
         //varibale declarations
@@ -113,14 +149,76 @@ int main() {
                                 client_sockets[i] = 0;              
                                 continue;
                         }
+                        
 
                         buffer[valread] = '\0';
-                        for(int j {}; j < MAX_CLIENTS; ++j){
-                                if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
-                                send(client_sockets[j], buffer, strlen(buffer), 0);
-                        }
-                }
+//improv
+                        std::stringstream buf_stream(buffer);
 
+                        int proto;
+                        buf_stream >> proto;
+
+                        switch(static_cast<Protocal>(proto)) {
+                                case Protocal::LOGIN: 
+                                {
+                                        std::string username;
+                                        std::string password;
+
+                                        buf_stream >> username;
+                                        buf_stream >> password;
+
+                                        bool login_success = user_handler.login(username, password);
+
+                                        char result[KB];
+
+                                        if(!login_success) {
+                                                result[0] = 'F';
+                                                result[1] = ' ';
+                                        } else {
+                                                result[0] = 'T';
+                                                result[1] = ' ';
+                                                user_handler.fill_data(result+2);
+                                        }
+
+                                        io.writer(client_sockets[i], result, KB);
+                                        break;
+                                }
+
+                                case Protocal::MESSAGE: 
+                                {
+                                        std::string username;
+                                        int group_id;
+                                        char* message;
+                                        
+                                        buf_stream >> username;
+                                        buf_stream >> group_id;
+                                        buf_stream >> message;
+
+                                        group_handler.send_message(username, group_id, message);
+
+                                        break;
+                                }
+
+                                case Protocal::CREATE_GROUP:
+                                {
+                                        int group_size;
+                                        buf_stream >> group_size;
+
+                                        std::vector<std::string> users(group_size);
+                                        for(std::string &user: users) {
+                                                buf_stream >> user;
+                                        } 
+
+                                        group_handler.create_group(users); 
+
+                                        break;
+                                }
+                                        
+                        }
+
+//                        for(int j {}; j < MAX_CLIENTS; ++j){
+//                                if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
+//                                send(client_sockets[j], buffer, strlen(buffer), 0); } }
         }
         
 
