@@ -25,19 +25,15 @@
 //Secondary thread: Continuously listens for incoming messages
 //This allows for real-time bidirectional communication
 
-struct Message {
-        std::string     _content;
-        User            _sender;
-};
-
 int main() {
-        
-        User    user("alex", "123");
-        Client  client;
+                
+        Client client;
 
         client.connect_to_server();
-        
-        bool login_val = client.login_user(user); if(!login_val) ERR("Login in failed");
+
+        User user;
+
+        client.login_user(user);
 
         client.chat(user);
 

@@ -25,6 +25,7 @@
 #define KB 1024
 
 enum class Protocal {
+        SIGNUP,
         LOGIN,
         MESSAGE,
         CREATE_GROUP,
@@ -35,8 +36,8 @@ class User;
 class UserHandler {
         std::unordered_map<std::string_view, User*> user_hash;
 public:
-        bool login(std::string_view username, std::string_view password);
-        bool fill_data(char *data);
+        int login(std::string_view username, std::string_view password);
+        bool pull_user_data(int user_id, char *data);
 
 } user_handler;
 
@@ -49,7 +50,7 @@ class Group {
 class GroupHandler {
         std::unordered_map<int, Group*> _group_hash;
 public:
-        bool send_message(std::string_view user_handler, int group_id, char message[]);
+        bool send_message(std::string_view username, int group_id, char message[]);
         bool create_group(std::vector<std::string> &users);
 
 } group_handler;
@@ -98,6 +99,8 @@ int main() {
         bool listen_fail = listen(server_fd, 3);
 
         if(listen_fail)                         perror("listen failed!"), exit(EXIT_FAILURE);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
         //server loop
         for(;;) {
@@ -136,7 +139,7 @@ int main() {
 
                 }
                 
-                //handling client messages
+                //handling client request
                 for(int i {}; i < MAX_CLIENTS; ++i){
                         if(client_sockets[i] <= 0) continue;
                         if(!FD_ISSET(client_sockets[i], &readfds)) continue;
@@ -159,6 +162,16 @@ int main() {
                         buf_stream >> proto;
 
                         switch(static_cast<Protocal>(proto)) {
+                                case Protocal::SIGNUP:
+                                {
+                                        std::string username;
+                                        std::string password;
+
+                                        buf_stream >> username;
+                                        buf_stream >> password;
+
+                                        
+                                }
                                 case Protocal::LOGIN: 
                                 {
                                         std::string username;
@@ -167,17 +180,17 @@ int main() {
                                         buf_stream >> username;
                                         buf_stream >> password;
 
-                                        bool login_success = user_handler.login(username, password);
+                                        int user_id = user_handler.login(username, password);
 
                                         char result[KB];
 
-                                        if(!login_success) {
-                                                result[0] = 'F';
-                                                result[1] = ' ';
-                                        } else {
+                                        if(user_id) {
                                                 result[0] = 'T';
                                                 result[1] = ' ';
-                                                user_handler.fill_data(result+2);
+                                                user_handler.pull_user_data(user_id, result+2);
+                                        } else {
+                                                result[0] = 'F';
+                                                result[1] = ' ';
                                         }
 
                                         io.writer(client_sockets[i], result, KB);

@@ -1,0 +1,7 @@
+[bob][12:00:00]: Anyone want to chat about random stuff?
+[david][12:05:30]: Sure, what's up?
+[bob][12:10:15]: Just testing this chat system
+[eve][12:15:45]: Looks cool! How does it work?
+[david][12:20:00]: It's using TCP sockets and C++
+[eve][12:25:30]: Nice! Very old school
+[bob][12:30:00]: But reliable!

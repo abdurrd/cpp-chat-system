@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstdio>
 #include <cstdlib>
-#include <iostream>
 #include <cstring>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -34,7 +32,7 @@ private:
                                 MESSAGE,
 
                                 size
-        };
+                        };
 public:
         ~Client();
 

@@ -1,0 +1,8 @@
+# Test Users Data
+# Format: username:password:user_id
+
+alice:pass123:1001
+bob:secret456:1002
+charlie:mypass789:1003
+david:test123:1004
+eve:password:1005

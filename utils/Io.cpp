@@ -15,7 +15,7 @@ ssize_t Io::reader(int sock, char *buffer, size_t nbyte) {
                 ssize_t  chunk_size = read(sock, buffer + offset, nbyte - offset);
                 if(chunk_size == 0) return offset;
                 if(chunk_size < 0) {
-                        if(INTR_OCCURED) continue; //if(interupt) continue;
+                        if(INTR_OCCURED) continue;
                         return -1;
                 }
                 offset += chunk_size;

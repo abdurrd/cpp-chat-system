@@ -1,0 +1,10 @@
+[alice][10:30:45]: Hey everyone! Welcome to the general chat
+[bob][10:31:02]: Hi alice! Thanks for having me
+[charlie][10:32:15]: Good morning all
+[alice][10:33:00]: How's everyone doing today?
+[bob][10:34:22]: Pretty good, working on the new feature
+[david][10:35:10]: Morning! Just joined
+[eve][10:36:45]: Hey everyone! 👋
+[charlie][10:37:30]: Anyone up for a quick meeting later?
+[alice][10:38:15]: Sure, what time?
+[bob][10:39:00]: Count me in

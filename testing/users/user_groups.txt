@@ -1,0 +1,12 @@
+# User to Group Mappings
+# Format: user_id:group_path
+
+1001:/groups/general.txt
+1001:/groups/project.txt
+1002:/groups/general.txt
+1002:/groups/random.txt
+1003:/groups/general.txt
+1003:/groups/project.txt
+1004:/groups/random.txt
+1005:/groups/general.txt
+1005:/groups/random.txt

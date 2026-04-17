@@ -18,6 +18,6 @@ class Server {
         
 public:
         void start();
-        void handle_new_connections();
+        void accept_connections();
 
 };
