@@ -25,13 +25,13 @@ void *receive_messages(void *socket_descriptor){
         char buffer[BUFFER_SIZE];
                                                                                 
         for(;;) {
-                int valread = read(sock, buffer, BUFFER_SIZE);
+                int valread = recv(sock, buffer, BUFFER_SIZE, 0);
                 if(valread <= 0) {
                         std::cout << " - Connection interupted\n";
                         break;
                 }
                 buffer[valread] = '\0';
-                std::cout << "received: " << buffer << "\n";
+                std::cout << buffer << "\n";
         }
 
         return nullptr;
@@ -75,7 +75,6 @@ int main() {
 
         //main sending loop
         for(;;) {
-                std::cout << "Message: ";
                 fgets(buffer, BUFFER_SIZE, stdin);
                 send(sock, buffer, strlen(buffer), 0);
         }

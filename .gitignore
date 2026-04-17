@@ -45,3 +45,14 @@ blog
 
 #lsp
 .clangd
+compile_flags.txt
+
+#hidden for now
+.CMakeLists.txt
+.TODO.md
+.blog/
+.frontend/
+.utils/
+
+#test data
+*-data/
