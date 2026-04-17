@@ -7,20 +7,28 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
 #include <iostream>
-#include <vector>
+#include <sstream>
 #include <cstring>
+#include <string>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
+#include <filesystem>
+
+#include "Protocal.hpp"
+
+namespace fs = std::filesystem;
 
 #define PORT 8888
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
 
 int main() {
+        
         //varibale declarations
 	int             server_fd;                      //file descripter for the socket
         int             new_socket;                     //temperary socket for new connections
@@ -62,7 +70,7 @@ int main() {
         bool listen_fail = listen(server_fd, 3);
 
         if(listen_fail)                         perror("listen failed!"), exit(EXIT_FAILURE);
-
+        
         //server loop
         for(;;) {
                 FD_ZERO(&readfds);              //clear all file descripters
@@ -105,7 +113,7 @@ int main() {
                         if(client_sockets[i] <= 0) continue;
                         if(!FD_ISSET(client_sockets[i], &readfds)) continue;
 
-                        int valread = read(client_sockets[i], buffer, BUFFER_SIZE);
+                        int valread = recv(client_sockets[i], buffer, BUFFER_SIZE, 0);
 
                         if(valread == 0) {
                                 close(client_sockets[i]);
@@ -114,11 +122,84 @@ int main() {
                                 continue;
                         }
 
+
                         buffer[valread] = '\0';
-                        for(int j {}; j < MAX_CLIENTS; ++j){
-                                if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
-                                send(client_sockets[j], buffer, strlen(buffer), 0);
+
+                        std::stringstream data(buffer);
+
+                        int protocal;
+                        
+                        data >> protocal;
+
+                        switch(static_cast<Protocal>(protocal)) {
+                                case Protocal::REGISTER:
+                                {
+                                        std::string username, password;
+                                        data >> username >> password;
+
+                                        fs::path user_path = "./server-data/users/" + username + ".txt";
+                                        if(fs::exists(user_path)) {
+                                                char err_message[] = "-1 Username_taken\0";
+                                                send(client_sockets[i], err_message, strlen(err_message), 0);
+                                                break;
+                                        }
+
+                                        std::ofstream new_user(user_path);
+                                        new_user << password << "\n";
+
+                                        char success_message[] = "1 User_created!\0";
+                                        send(client_sockets[i], success_message, strlen(success_message), 0);
+                                        break;
+                                }
+                                case Protocal::LOGIN:
+                                {
+                                        std::string u_username, u_password;
+                                        data >> u_username >> u_password;
+
+                                        fs::path user_path = "./server-data/users/" + u_username + ".txt";
+                                        if(!fs::exists(user_path)) {
+                                                char err_message[] = "-1 Username_not_found\0";
+                                                send(client_sockets[i], err_message, strlen(err_message), 0);
+                                                break;
+                                        }
+
+                                        std::ifstream user_data(user_path);
+                                        std::string password;
+                                        user_data >> password;
+                                        if(u_password != password) {
+                                                char err_message[] = "-1 Wrong_password\0";
+                                                send(client_sockets[i], err_message, strlen(err_message), 0);
+                                                break;
+                                        }
+
+                                        int group_no = -1;
+                                        std::string group_info;
+                                        std::string line;
+                                        while(std::getline(user_data, line)) {
+                                                group_info += line + '\n';
+                                                ++group_no;
+                                        }
+                                        group_info += '\0';
+                                        group_info = std::to_string(group_no) + '\n' + group_info;
+                                        send(client_sockets[i], group_info.c_str(), strlen(group_info.c_str()), 0);
+                                        break;
+                                }
+                                case Protocal::MESSAGE:
+                                {
+                                        std::cout << "Message protocal\n";
+                                        break;
+                                }
+                                case Protocal::CREATE_GROUP:
+                                {
+                                        std::cout << "Create group protocal\n";
+                                        break;
+                                }
                         }
+
+                       // for(int j {}; j < MAX_CLIENTS; ++j){
+                       //         if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
+                       //         send(client_sockets[j], buffer, strlen(buffer), 0);
+                       // }
                 }
 
         }
