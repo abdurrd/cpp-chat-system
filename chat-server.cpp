@@ -27,6 +27,14 @@ namespace fs = std::filesystem;
 #define MAX_CLIENTS 10
 #define BUFFER_SIZE 1024
 
+std::string read_to_eof(std::string &&file_path){
+        std::ifstream file_data(file_path); //might optomise this later
+        std::stringstream file_contents;                                  
+        file_contents << file_data.rdbuf();
+
+        return file_contents.str();
+}
+
 int main() {
         
         //varibale declarations
@@ -108,7 +116,10 @@ int main() {
 
                 }
                 
-                //handling client messages
+                //handling client messages this entire thing will be delegated to a thread of its own
+                //this thread will mearly handle all the connection requests and will delegate this 
+                //protocal loop for each new connection and each thread will have its own handlers
+                //also since multiple thrads will try to write to the same files we must use mutexes.
                 for(int i {}; i < MAX_CLIENTS; ++i){
                         if(client_sockets[i] <= 0) continue;
                         if(!FD_ISSET(client_sockets[i], &readfds)) continue;
@@ -122,20 +133,17 @@ int main() {
                                 continue;
                         }
 
-
                         buffer[valread] = '\0';
-
-                        std::stringstream data(buffer);
+                        std::stringstream payload(buffer);
 
                         int protocal;
-                        
-                        data >> protocal;
+                        payload >> protocal;
 
                         switch(static_cast<Protocal>(protocal)) {
                                 case Protocal::REGISTER:
                                 {
                                         std::string username, password;
-                                        data >> username >> password;
+                                        payload >> username >> password;
 
                                         fs::path user_path = "./server-data/users/" + username + ".txt";
                                         if(fs::exists(user_path)) {
@@ -154,7 +162,7 @@ int main() {
                                 case Protocal::LOGIN:
                                 {
                                         std::string u_username, u_password;
-                                        data >> u_username >> u_password;
+                                        payload >> u_username >> u_password;
 
                                         fs::path user_path = "./server-data/users/" + u_username + ".txt";
                                         if(!fs::exists(user_path)) {
@@ -173,26 +181,49 @@ int main() {
                                         }
 
                                         int group_no = -1;
-                                        std::string group_info;
+                                        std::string group_data;
                                         std::string line;
                                         while(std::getline(user_data, line)) {
-                                                group_info += line + '\n';
+                                                group_data += line;
+                                                group_data += '\n';
+
+                                                group_data += read_to_eof("./server-data/groups/"+line+".txt");
+                                                group_data += read_to_eof("./server-data/chats/"+line+".txt");
+
                                                 ++group_no;
                                         }
-                                        group_info += '\0';
-                                        group_info = std::to_string(group_no) + '\n' + group_info;
-                                        send(client_sockets[i], group_info.c_str(), strlen(group_info.c_str()), 0);
+                                        group_data = std::to_string(group_no) + '\n' + group_data;
+                                        group_data += '\0';
+                                        send(client_sockets[i], group_data.c_str(), strlen(group_data.c_str()), 0);
                                         break;
                                 }
                                 case Protocal::MESSAGE:
                                 {
-                                        std::cout << "Message protocal\n";
+                                        std::string sender, group, message;
+                                        payload >> sender >> group;
+                                        std::getline(payload, message);
+                                        fs::path chat_path("./server-data/chats/" + group + ".txt");
+
+                                        //no need to handle braodcast as this will update the chat file
+                                        //which will be being watched by all other live memebers on their
+                                        //own thread
+                                        
+                                        std::ofstream chat_out(chat_path, std::ios::app);
+                                        chat_out << sender << " ";
+                                        chat_out << message << "\n";
+
                                         break;
                                 }
                                 case Protocal::CREATE_GROUP:
                                 {
                                         std::cout << "Create group protocal\n";
                                         break;
+                                }
+                                default:
+                                {
+                                        std::cout << "Recieved non server specific protocal code: " << protocal << "\n";
+                                        std::cout << "With payload: " << payload.str() << "\n";
+
                                 }
                         }
 
