@@ -314,17 +314,10 @@ int main() {
         //varibale declarations
 	int             server_fd;                      //file descripter for the socket
         int             new_socket;                     //temperary socket for new connections
-      // int             client_sockets[MAX_CLIENTS] {}; //array to store all client socket descripters
 
         sockaddr_in     address;                        //structure to hold server address information
 
         int             opt = 1;                            //option for socket configuration
-      //  int             max_sd;                         //highest socket descriptor number
-      //  int             activity;                       //return value from select()
-
-      //  fd_set          readfds;                        //file descriptor set for monitoring
-
-      //  char            buffer[BUFFER_SIZE] {0};        //buffer to store incoming messages
 
         //creating the socket:
         //AF_INET: IPv4 address family
@@ -355,189 +348,12 @@ int main() {
 
         std::vector<std::thread> client_workers;
         
-        //server loop
+        //accept incoming clients and delegating them to a thread each
         while(running) {
-               // FD_ZERO(&readfds);              //clear all file descripters
-               // FD_SET(server_fd, &readfds);    //add server socket to set
-               // max_sd = server_fd;
-
-               // //add all clients sockets to set
-               // for(int i {}; i < MAX_CLIENTS; ++i) {
-               //         if(client_sockets[i] <= 0) continue;
-
-               //         FD_SET(client_sockets[i], &readfds);
-               //         
-               //         //need max discripter size for select()
-               //         max_sd = std::max(max_sd, client_sockets[i]);
-               // }
-
-               // activity = select(max_sd + 1, &readfds, nullptr, nullptr, nullptr);
-
-               // if(activity < 0)                perror("select failed!");
-                
-                //handling new client connections
-                //if(FD_ISSET(server_fd, &readfds)) {
-                
                 new_socket = accept(server_fd, nullptr, nullptr);
                 
                 client_workers.push_back(std::thread{client_handler, &new_socket});
                 
-               // for(int i {}; i < MAX_CLIENTS; ++i){
-               //         if(client_sockets[i] != 0) continue;
-
-               //         client_sockets[i] = new_socket;
-               //         std::cout << "New client:" << client_sockets[i] << " connected.\n";
-
-               //         break;
-               // }
-
-                //}
-                
-                //handling client messages this entire thing will be delegated to a thread of its own
-                //this thread will mearly handle all the connection requests and will delegate this 
-                //protocal loop for each new connection and each thread will have its own handlers
-                //also since multiple thrads will try to write to the same files we must use mutexes.
-               // for(int i {}; i < MAX_CLIENTS; ++i){
-               //         if(client_sockets[i] <= 0) continue;
-               //         if(!FD_ISSET(client_sockets[i], &readfds)) continue;
-
-               //         int valread = recv(client_sockets[i], buffer, BUFFER_SIZE, 0);
-
-               //         if(valread == 0) {
-               //                 close(client_sockets[i]);
-               //                 std::cout << "client:" << client_sockets[i] << " disconnected\n";
-               //                 client_sockets[i] = 0;              
-               //                 continue;
-               //         }
-
-               //         buffer[valread] = '\0';
-               //         std::stringstream payload(buffer);
-
-               //         int protocal;
-               //         payload >> protocal;
-
-               //         switch(static_cast<Protocal>(protocal)) {
-               //                 case Protocal::REGISTER:
-               //                 {
-               //                         std::string username, password;
-               //                         payload >> username >> password;
-
-               //                         fs::path user_path = "./server-data/users/" + username + ".txt";
-               //                         if(fs::exists(user_path)) {
-               //                                 char err_message[] = "-1 Username_taken\0";
-               //                                 send(client_sockets[i], err_message, strlen(err_message), 0);
-               //                                 break;
-               //                         }
-
-               //                         std::ofstream new_user(user_path);
-               //                         new_user << password << "\n";
-
-               //                         char success_message[] = "1 User_created!\0";
-               //                         send(client_sockets[i], success_message, strlen(success_message), 0);
-               //                         break;
-               //                 }
-               //                 case Protocal::LOGIN:
-               //                 {
-               //                         std::string u_username, u_password;
-               //                         payload >> u_username >> u_password;
-
-               //                         fs::path user_path = "./server-data/users/" + u_username + ".txt";
-               //                         if(!fs::exists(user_path)) {
-               //                                 char err_message[] = "-1 Username_not_found\0";
-               //                                 send(client_sockets[i], err_message, strlen(err_message), 0);
-               //                                 break;
-               //                         }
-
-               //                         std::ifstream user_data(user_path);
-               //                         std::string password;
-               //                         user_data >> password;
-               //                         if(u_password != password) {
-               //                                 char err_message[] = "-1 Wrong_password\0";
-               //                                 send(client_sockets[i], err_message, strlen(err_message), 0);
-               //                                 break;
-               //                         }
-
-               //                         int group_no = -1;
-               //                         std::string group_data;
-               //                         std::string line;
-               //                         while(std::getline(user_data, line)) {
-               //                                 group_data += line;
-               //                                 group_data += '\n';
-
-               //                                 group_data += read_to_eof("./server-data/groups/"+line+".txt");
-               //                                 group_data += read_to_eof("./server-data/chats/"+line+".txt");
-
-               //                                 ++group_no;
-               //                         }
-               //                         group_data = std::to_string(group_no) + '\n' + group_data;
-               //                         group_data += '\0';
-               //                         send(client_sockets[i], group_data.c_str(), strlen(group_data.c_str()), 0);
-               //                         break;
-               //                 }
-               //                 case Protocal::MESSAGE:
-               //                 {
-               //                         std::string sender, group, message;
-               //                         payload >> sender >> group;
-               //                         std::getline(payload, message);
-               //                         fs::path chat_path("./server-data/chats/" + group + ".txt");
-
-               //                         //no need to handle braodcast as this will update the chat file
-               //                         //which will be being watched by all other live memebers on their
-               //                         //own thread
-               //                         
-               //                         std::ofstream chat_out(chat_path, std::ios::app);
-               //                         chat_out << sender << " ";
-               //                         chat_out << message << "\n";
-               //                         
-               //                         break;
-               //                 }
-               //                 case Protocal::CREATE_GROUP:
-               //                 {
-               //                         std::string grp_name;
-               //                         int num_members;
-               //                         std::vector<std::string> users;
-
-               //                         payload >> grp_name;
-               //                         payload >> num_members;
-               //                         users = std::vector<std::string>(num_members);
-               //                         for(int i = 0; i < num_members; ++i) {
-               //                                 payload >> users[i];
-               //                         }
-               //                         
-               //                         fs::path gh_path = "./server-data/groups/hash_key.txt";
-               //                         std::fstream gh_file(gh_path, std::ios::trunc);
-
-               //                         int group_hash;
-               //                         gh_file >> group_hash;
-               //                         
-               //                         fs::path new_grp_path = "./server-data/groups/" + std::to_string(group_hash) + ".txt";
-
-               //                         std::ofstream new_grp_file(new_grp_path);
-               //                         
-               //                         new_grp_file << grp_name << "\n";
-               //                         for(int i = 0; i < num_members; ++i) {
-               //                                 new_grp_file << users[i] << "\n";
-               //                         }
-               //                         
-               //                         ++group_hash;
-               //                         gh_file << group_hash;
-
-               //                         break;
-               //                 }
-               //                 default:
-               //                 {
-               //                         std::cout << "Recieved non server specific protocal code: " << protocal << "\n";
-               //                         std::cout << "With payload: " << payload.str() << "\n";
-
-               //                 }
-               //         }
-
-                       // for(int j {}; j < MAX_CLIENTS; ++j){
-                       //         if(i == j || client_sockets[j] <= 0) continue; //all connected clients except i-th/current client
-                       //         send(client_sockets[j], buffer, strlen(buffer), 0);
-                       // }
-               // }
-
         }
         
         for(auto &w: client_workers) {
