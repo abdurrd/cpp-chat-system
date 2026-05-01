@@ -4,11 +4,11 @@
 
 
 //file watcher
-void FileStore::open_user_fd(const std::string &username){
+int FileStore::open_user_fd(const std::string &username){
         fs::path user_path = make_path(username, Type::USER);
         int user_fd = open(user_path.c_str(), O_RDONLY);
         lseek(user_fd, 0, SEEK_END);
-        return; user_fd;
+        return user_fd;
 }
 
 void FileStore::open_chat_fds(const std::string &username, std::vector<int> &chat_fd, std::unordered_map<int,int> &cfd_to_hash) {

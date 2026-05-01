@@ -63,7 +63,7 @@ public:
         }
 
         //for file watcher
-        void open_user_fd(const std::string &username);
+        int open_user_fd(const std::string &username);
         void open_chat_fds(const std::string &username, std::vector<int>&, std::unordered_map<int,int>&);
         int open_new_chat_fd(std::string &&chat_hash);
         //std::string broadcast_message_to_client(int chat_fd);
