@@ -6,6 +6,7 @@
 #include <mutex>
 #include <fstream>
 #include <sstream>
+#include <unordered_map>
 
 namespace fs = std::filesystem;
 
@@ -63,9 +64,9 @@ public:
 
         //for file watcher
         void open_user_fd(const std::string &username);
-        std::vector<int> open_chat_fds(const std::string &username);
-        int open_new_chat_fd(int user_fd);
-        std::string new_message(int chat_fd);
+        void open_chat_fds(const std::string &username, std::vector<int>&, std::unordered_map<int,int>&);
+        int open_new_chat_fd(std::string &&chat_hash);
+        //std::string broadcast_message_to_client(int chat_fd);
 
         //for protocals
         std::optional<std::string> check_user(std::string &username);

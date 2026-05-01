@@ -1,5 +1,52 @@
 #include "FileStore.hpp"
+#include <unistd.h>
+#include <fcntl.h>
 
+
+//file watcher
+void FileStore::open_user_fd(const std::string &username){
+        fs::path user_path = make_path(username, Type::USER);
+        int user_fd = open(user_path.c_str(), O_RDONLY);
+        lseek(user_fd, 0, SEEK_END);
+        return; user_fd;
+}
+
+void FileStore::open_chat_fds(const std::string &username, std::vector<int> &chat_fd, std::unordered_map<int,int> &cfd_to_hash) {
+        fs::path user_path = make_path(username, Type::USER);
+        std::vector<int> chat_hashs;
+
+        {//just to discard
+                std::ifstream user_file(user_path);
+
+                std::string discard;
+                std::getline(user_file, discard);
+
+                std::string hash;
+                while(std::getline(user_file, hash)) {
+                        chat_hashs.push_back(std::stoi(hash));
+                }
+        }
+
+
+        for(int hash: chat_hashs) {
+                std::string chat_path = make_path(std::to_string(hash), Type::CHAT);
+                chat_fd.push_back(open(chat_path.c_str(), O_RDONLY));
+                cfd_to_hash[*--chat_fd.end()] = hash;
+        }
+        
+        for(int cfd: chat_fd) {
+                lseek(cfd, 0, SEEK_END);
+        }
+}
+
+int FileStore::open_new_chat_fd(std::string &&chat_hash){
+        fs::path chat_path = make_path(chat_hash, Type::CHAT);
+        return open(chat_path.c_str(), O_RDONLY);
+}
+
+//std::string broadcast_message_to_client(int chat_fd);
+
+//protocals
 std::optional<std::string> FileStore::check_user(std::string &username) {
         fs::path user_path = make_path(username, Type::USER);
         if(!fs::exists(user_path)) return std::nullopt;
