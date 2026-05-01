@@ -1,0 +1,77 @@
+#pragma once
+#include <optional>
+#include <string>
+#include <filesystem>
+#include <vector>
+#include <mutex>
+#include <fstream>
+#include <sstream>
+
+namespace fs = std::filesystem;
+
+class FileStore {
+
+        std::mutex _user_mutex;
+        std::mutex _group_mutex;
+        std::mutex _chat_mutex;
+        
+        std::string user_path_prefix = "./server-data/users/";
+        std::string group_path_prefix = "./server-data/groups/";
+        std::string chat_path_prefix = "./server-data/chats/";
+
+        fs::path group_hash_path = "./server-data/groups/hash_key.txt";
+
+        enum Type {
+                USER,
+                GROUP,
+                CHAT
+        };
+        
+        fs::path make_path(std::string hash, Type type) {
+
+                std::string path_str;
+
+                switch(type) {
+                        case Type::USER: path_str = user_path_prefix;
+                        case Type::GROUP: path_str = user_path_prefix;
+                        case Type::CHAT: path_str = user_path_prefix;
+                }
+
+                path_str += hash + ".txt";
+
+                fs::path file_path = path_str;
+
+                return file_path;
+        } 
+
+        std::string read_to_eof(fs::path &&file_path){
+                        std::ifstream file_data(file_path); //might optomise this later
+                        std::stringstream file_contents;                                  
+                        file_contents << file_data.rdbuf();
+
+                        return file_contents.str();
+        }
+
+
+        FileStore() = default;
+
+public:
+        static FileStore &instance() {
+                static FileStore fs;
+                return fs;
+        }
+
+        //for file watcher
+        void open_user_fd(const std::string &username);
+        std::vector<int> open_chat_fds(const std::string &username);
+        int open_new_chat_fd(int user_fd);
+        std::string new_message(int chat_fd);
+
+        //for protocals
+        std::optional<std::string> check_user(std::string &username);
+        void make_new_user(std::string &username, std::string &password);
+        std::string get_group_data_payload(std::string &username);
+        void write_chat(std::string &sender, std::string &group, std::string &message);
+        void create_group(std::string &grp_name, std::vector<std::string> &members);
+
+};
