@@ -3,7 +3,7 @@
 #include <fcntl.h>
 
 
-//file watcher
+//file watching
 int FileStore::open_user_fd(const std::string &username){
         fs::path user_path = make_path(username, Type::USER);
         int user_fd = open(user_path.c_str(), O_RDONLY);
@@ -13,8 +13,8 @@ int FileStore::open_user_fd(const std::string &username){
 
 void FileStore::open_chat_fds(const std::string &username, std::vector<int> &chat_fd, std::unordered_map<int,int> &cfd_to_hash) {
         fs::path user_path = make_path(username, Type::USER);
-        std::vector<int> chat_hashs;
 
+        std::vector<int> chat_hashs;
         {//just to discard
                 std::ifstream user_file(user_path);
 

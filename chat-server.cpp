@@ -5,7 +5,7 @@
  * Broadcasts messages from one client to all others
  */
 
-#include <csignal>
+//#include <csignal>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
@@ -242,7 +242,7 @@ void* client_handler(void *client_socket) {
                                 fs::path chat_path("./server-data/chats/" + group + ".txt");
 
                                 //no need to handle braodcast as this will update the chat file
-                                //which will be being watched by all other live memebers on their
+                                //which will be watched by all other live memebers on their
                                 //own thread
                                 
                                 std::ofstream chat_out(chat_path, std::ios::app);
@@ -351,9 +351,7 @@ int main() {
         //accept incoming clients and delegating them to a thread each
         while(running) {
                 new_socket = accept(server_fd, nullptr, nullptr);
-                
                 client_workers.push_back(std::thread{client_handler, &new_socket});
-                
         }
         
         for(auto &w: client_workers) {

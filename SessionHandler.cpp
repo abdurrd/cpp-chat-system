@@ -4,10 +4,10 @@
 #include <string>
 
 std::unordered_map<Protocal, std::unique_ptr<ProtocalHandler>> SessionHandler::_handlers {
-        {Protocal::REGISTER, std::unique_ptr<RegestrationHandler>()},
-        {Protocal::LOGIN, std::unique_ptr<LoginHandler>()},
-        {Protocal::MESSAGE, std::unique_ptr<MesssageHandler>()},
-        {Protocal::CREATE_GROUP, std::unique_ptr<CreateGroupHandler>()}
+        {Protocal::REGISTER,            std::unique_ptr<RegestrationHandler>()},
+        {Protocal::LOGIN,               std::unique_ptr<LoginHandler>()},
+        {Protocal::MESSAGE,             std::unique_ptr<MesssageHandler>()},
+        {Protocal::CREATE_GROUP,        std::unique_ptr<CreateGroupHandler>()}
 };
 
 SessionHandler::SessionHandler(int clinet_socket, std::atomic<bool> &running)

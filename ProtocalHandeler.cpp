@@ -3,6 +3,7 @@
 #include <string>
 #include "ProtocalHandeler.hpp"
 #include "SessionHandler.hpp"
+#include "FileStore.hpp"
 #include <string>
 
 void ProtocalHandler::sendError(Protocal error_code, int clientfd) {
@@ -32,6 +33,7 @@ void RegestrationHandler::handle_payload(std::istringstream &payload, SessionHan
 
 void LoginHandler::handle_payload(std::istringstream &payload, SessionHandler &session) {
         auto client = session.getClient();
+
 
         std::string u_username, u_password;
         payload >> u_username >> u_password;
@@ -74,16 +76,16 @@ void MesssageHandler::handle_payload(std::istringstream &payload, SessionHandler
 void CreateGroupHandler::handle_payload(std::istringstream &payload, SessionHandler &session) {
         std::string grp_name;
         int num_members;
-        std::vector<std::string> users;
+        std::vector<std::string> members;
 
         payload >> grp_name;
         payload >> num_members;
-        users = std::vector<std::string>(num_members);
+        members = std::vector<std::string>(num_members);
         for(int i = 0; i < num_members; ++i) {
-                payload >> users[i];
+                payload >> members[i];
         }
 
-        FileStore::instance().create_group(grp_name, users);
+        FileStore::instance().create_group(grp_name, members);
 
         return;
 }
