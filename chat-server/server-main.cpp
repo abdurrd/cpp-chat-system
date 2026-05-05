@@ -28,7 +28,8 @@
 #include <fcntl.h>
 #include <unordered_map>
 
-#include "Protocal.hpp"
+#include "../Protocal.hpp"
+#include "SessionHandler.hpp"
 
 namespace fs = std::filesystem;
 
@@ -351,7 +352,7 @@ int main() {
         //accept incoming clients and delegating them to a thread each
         while(running) {
                 new_socket = accept(server_fd, nullptr, nullptr);
-                client_workers.push_back(std::thread{client_handler, &new_socket});
+                client_workers.push_back(std::thread{SessionHandler(new_socket, running)});
         }
         
         for(auto &w: client_workers) {
