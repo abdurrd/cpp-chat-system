@@ -37,6 +37,9 @@ void *receive_messages(void *socket_descriptor){
         return nullptr;
 }
 
+
+}
+
 int main() {
 
         //Main thread: Handles user input and sends messages

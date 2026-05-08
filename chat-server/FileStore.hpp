@@ -45,7 +45,7 @@ class FileStore {
                 return file_path;
         } 
 
-        std::string read_to_eof(fs::path &&file_path){
+        std::string read_to_eof(fs::path file_path){
                         std::ifstream file_data(file_path); //might optomise this later
                         std::stringstream file_contents;                                  
                         file_contents << file_data.rdbuf();
@@ -73,6 +73,6 @@ public:
         void make_new_user(std::string &username, std::string &password);
         std::string get_group_data_payload(std::string &username);
         void write_chat(std::string &sender, std::string &group, std::string &message);
-        void create_group(std::string &grp_name, std::vector<std::string> &members);
+        void create_group(std::string &grp_name, std::string &username, std::vector<std::string> &members);
 
 };

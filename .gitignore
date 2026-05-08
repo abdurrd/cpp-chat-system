@@ -56,3 +56,7 @@ compile_flags.txt
 
 #test data
 *-data/
+
+
+#tui for now
+chat-client/cpp-tui

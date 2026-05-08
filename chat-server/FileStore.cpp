@@ -1,7 +1,9 @@
 #include "FileStore.hpp"
+#include <filesystem>
 #include <unistd.h>
 #include <fcntl.h>
 
+#include <iostream>
 
 //file watching
 int FileStore::open_user_fd(const std::string &username){
@@ -90,8 +92,10 @@ std::string FileStore::get_group_data_payload(std::string &username){
                 group_data += line;
                 group_data += '\n';
 
-                group_data += read_to_eof(std::move(make_path(line, Type::GROUP)));
-                group_data += read_to_eof(std::move(make_path(line, Type::CHAT)));
+                group_data += read_to_eof(make_path(line, Type::GROUP));
+                group_data += "%\n";
+                group_data += read_to_eof(make_path(line, Type::CHAT));
+                group_data += "%\n";
 
                 ++group_no;
         }
@@ -117,7 +121,7 @@ void FileStore::write_chat(std::string &sender, std::string &group, std::string 
         return;
 }
 
-void FileStore::create_group(std::string &grp_name, std::vector<std::string> &members) {
+void FileStore::create_group(std::string &grp_name, std::string &username, std::vector<std::string> &members) {
         std::fstream gh_file(group_hash_path, std::ios::in | std::ios::out);
 
         int group_hash;
@@ -130,6 +134,8 @@ void FileStore::create_group(std::string &grp_name, std::vector<std::string> &me
         std::ofstream new_grp_file(new_grp_path);
         
         new_grp_file << grp_name << "\n";
+        new_grp_file << username << "\n";
+
         for(std::string user: members) {
                 if(check_user(user)) {
                         new_grp_file << user << "\n";

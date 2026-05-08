@@ -2,12 +2,16 @@
 #include "FileStore.hpp"
 #include <string>
 
-std::unordered_map<Protocal, std::unique_ptr<ProtocalHandler>> SessionHandler::_handlers {
-        {Protocal::REGISTER,            std::unique_ptr<RegestrationHandler>()},
-        {Protocal::LOGIN,               std::unique_ptr<LoginHandler>()},
-        {Protocal::MESSAGE,             std::unique_ptr<MesssageHandler>()},
-        {Protocal::CREATE_GROUP,        std::unique_ptr<CreateGroupHandler>()}
-};
+std::unordered_map<Protocol, std::unique_ptr<ProtocolHandler>> SessionHandler::_handlers = []{
+        std::unordered_map<Protocol, std::unique_ptr<ProtocolHandler>> m;
+
+        m.emplace(Protocol::REGISTER,            std::make_unique<RegestrationHandler>());
+        m.emplace(Protocol::LOGIN,               std::make_unique<LoginHandler>());
+        m.emplace(Protocol::MESSAGE,             std::make_unique<MesssageHandler>());
+        m.emplace(Protocol::CREATE_GROUP,        std::make_unique<CreateGroupHandler>());
+
+        return m;
+}();
 
 SessionHandler::SessionHandler(int clinet_socket, std::atomic<bool> &running)
                 : 
@@ -44,15 +48,15 @@ void SessionHandler::operator()() {
 
                 std::istringstream payload(buffer);
 
-                int protocal;
-                payload >> protocal;
+                Protocol protocol;
+                payload >> protocol;
                 
-                if(_handlers.find(static_cast<Protocal>(protocal)) == _handlers.end()) {
-                        std::cout << "Recieved non server specific protocal code: " << protocal << "\n";
+                if(_handlers.find(protocol)== _handlers.end()) {
+                        std::cout << "Recieved non server specific protocol: " << protocol << "\n";
                         std::cout << "With payload: " << payload.str() << "\n";
-                }
+                } 
+                else _handlers[protocol]->handle_payload(payload, *this);
 
-                _handlers[static_cast<Protocal>(protocal)]->handle_payload(payload, *this);
         }
 
         write(_pipefd[1], "x", 1);

@@ -1,11 +1,7 @@
 #pragma once
 //#include <csignal>
-#include <cstdio>
 #include <cstdlib>
-#include <fstream>
-#include <iostream>
 #include <memory>
-#include <sstream>
 #include <cstring>
 #include <string>
 #include <thread>
@@ -15,27 +11,22 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/select.h>
-#include <filesystem>
-#include <vector>
 #include <atomic>
 #include <unistd.h>
 #include <fcntl.h>
 #include <unordered_map>
 
-#include "../Protocal.hpp"
-#include "ProtocalHandeler.hpp"
+#include "../Protocol.hpp"
+#include "ProtocolHandeler.hpp"
 
-namespace fs = std::filesystem;
 
 #define KB 1024
 
 class SessionHandler {
 private:
-        std::atomic<bool> &_running;
-
         std::thread _watcher_thread; 
 
-        static std::unordered_map<Protocal, std::unique_ptr<ProtocalHandler>> _handlers;
+        static std::unordered_map<Protocol, std::unique_ptr<ProtocolHandler>> _handlers;
 
         int _pipefd[2];
 
@@ -46,6 +37,7 @@ private:
                 Client(int fd):_fd{fd}{}
         }client;
 
+        std::atomic<bool> &_running;
 
 public:
 
