@@ -4,7 +4,9 @@
 #include <cctype>
 #include <memory.h>
 #include <memory>
+#include <queue>
 
+#include "ChatInfo.hpp"
 #include "FileManager.hpp"
 #include "Reciever.hpp"
 #include "TransportLayer.hpp"
@@ -14,13 +16,11 @@
 using namespace cpptui;
 
 class AppRunner{
-        std::shared_ptr<bool> LoggedIn =                std::make_shared<bool>(false);
-        std::shared_ptr<ScrollableVertical>             side_bar = std::make_shared<ScrollableVertical>();
-        std::shared_ptr<Label>                          header_label;
-        TransportLayer                                  transport_layer;
-        std::shared_ptr<ChatLogger> _chat_logger =      std::make_shared<ChatLogger>(nullptr);
-        std::shared_ptr<std::string> _current_hash =    std::make_shared<std::string>("-1");
-        std::shared_ptr<FileManager> file_manager =     std::make_shared<FileManager>(_current_hash, side_bar, _chat_logger, header_label);
+        std::shared_ptr<bool> LoggedIn = std::make_shared<bool>(false);
+        std::shared_ptr<std::queue<ChatInfo>> loaded_chats = std::make_shared<std::queue<ChatInfo>>();
+        ChatInfo focused_chat;
+        std::shared_ptr<FileManager> file_manager = std::make_shared<FileManager>(loaded_chats);
+        TransportLayer transport_layer;
 
         int _client_fd;
 
@@ -29,9 +29,6 @@ public:
                 : _client_fd(client_fd)
         {
                 transport_layer = TransportLayer(_client_fd, LoggedIn, file_manager);
-                
-                auto pd = std::make_shared<VerticalSpacer>(1);
-                side_bar->add(pd);
         }
 
         void login_page() {
@@ -191,6 +188,7 @@ public:
 
                 App main_app;
 
+
                 auto notif = std::make_shared<Notification>();
                 main_app.set_notification(notif);
 
@@ -199,12 +197,16 @@ public:
                         notif->show(message, type, 3000);
                 };
                 
+                std::shared_ptr<Label> header_label = std::make_shared<Label>("-- No chat opened --");
 
                 //sidebar
                 auto sidebar_box = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 120, 0));
                 sidebar_box->fixed_width = 26;
                 sidebar_box->set_title("Channels");
 
+                auto side_bar = std::make_shared<ScrollableVertical>();
+                auto pd = std::make_shared<VerticalSpacer>(1);
+                side_bar->add(pd);
                 side_bar->fixed_width = 24;
 
                 //add functionality to add new group
@@ -223,8 +225,6 @@ public:
                 //chat log
                 std::shared_ptr<ScrollableVertical> chat_log = std::make_shared<ScrollableVertical>();
                 chat_log->clear_children();
-
-                *_chat_logger = ChatLogger(chat_log);
 
                 auto log_box = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 150, 0));
 
@@ -245,11 +245,11 @@ public:
                 auto send_btn = std::make_shared<Button>("Send", [this, message_input, notify] {
                                 std::string message = message_input->get_value();
                                 if(message.length() == 0) return;
-                                if(*_current_hash == "-1") {
+                                if(focused_chat.getHash() == "-1") {
                                         notify("Select a group to send to!", Notification::Type::Info);
                                         return;
                                 }
-                                transport_layer.send_message(*_current_hash, message);
+                                transport_layer.send_message(focused_chat.getHash(), message);
                 });
                 send_btn->bg_color = {26, 27, 38};
                 send_btn->hover_color = {26, 100, 38};
@@ -281,6 +281,29 @@ public:
                 auto root = std::make_shared<Horizontal>();
                 root->add(sidebar_box);
                 root->add(panel_box);
+
+                std::ifstream cur_chat_file;
+                
+                main_app.add_timer(100, [&]{
+                        while(!loaded_chats->empty()) {
+                                ChatInfo cht = loaded_chats->front();
+                                side_bar->add(std::make_shared<Button>(cht.getName(), [this, cht, chat_log, header_label, &cur_chat_file] {
+                                        focused_chat = cht;
+                                        chat_log->clear_children();
+                                        header_label->set_text(cht.getName());
+                                        cur_chat_file.close();
+                                        cur_chat_file.open(cht.getPath());
+                                }));
+                                loaded_chats->pop();
+                        }
+
+                        if(!cur_chat_file.is_open()) return;
+                        std::string message;
+                        while(std::getline(cur_chat_file, message)) {
+                                chat_log->add(std::make_shared<Label>(message));
+                        }
+                        if(cur_chat_file.eof()) cur_chat_file.clear();                
+                });
 
                 main_app.register_exit_key('q');
 
