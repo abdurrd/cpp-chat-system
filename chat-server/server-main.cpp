@@ -28,7 +28,7 @@
 #include <fcntl.h>
 #include <unordered_map>
 
-#include "../Protocal.hpp"
+#include "../Protocol.hpp"
 #include "SessionHandler.hpp"
 
 namespace fs = std::filesystem;
@@ -167,8 +167,8 @@ void* client_handler(void *client_socket) {
                 int protocal;
                 payload >> protocal;
 
-                switch(static_cast<Protocal>(protocal)) {
-                        case Protocal::REGISTER:
+                switch(static_cast<Protocol>(protocal)) {
+                        case Protocol::REGISTER:
                         {
                                 std::string username, password;
                                 payload >> username >> password;
@@ -191,7 +191,7 @@ void* client_handler(void *client_socket) {
                                 send(client, success_message, strlen(success_message), 0);
                                 break;
                         }
-                        case Protocal::LOGIN:
+                        case Protocol::LOGIN:
                         {
                                 std::string u_username, u_password;
                                 payload >> u_username >> u_password;
@@ -235,7 +235,7 @@ void* client_handler(void *client_socket) {
                                 watcher_thread = std::thread(file_watcher, client_socket, pipefd[0], u_username);
                                 break;
                         }
-                        case Protocal::MESSAGE:
+                        case Protocol::MESSAGE:
                         {
                                 std::string sender, group, message;
                                 payload >> sender >> group;
@@ -252,7 +252,7 @@ void* client_handler(void *client_socket) {
                                 
                                 break;
                         }
-                        case Protocal::CREATE_GROUP:
+                        case Protocol::CREATE_GROUP:
                         {
                                 std::cout << "create group protocal: " << payload.str() << "\n";
                                 std::string grp_name;

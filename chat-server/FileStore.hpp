@@ -33,9 +33,9 @@ class FileStore {
                 std::string path_str;
 
                 switch(type) {
-                        case Type::USER: path_str = user_path_prefix;
-                        case Type::GROUP: path_str = user_path_prefix;
-                        case Type::CHAT: path_str = user_path_prefix;
+                        case Type::USER: path_str = user_path_prefix; break;
+                        case Type::GROUP: path_str = group_path_prefix; break;
+                        case Type::CHAT: path_str = chat_path_prefix; break;
                 }
 
                 path_str += hash + ".txt";
@@ -45,13 +45,14 @@ class FileStore {
                 return file_path;
         } 
 
-        std::string read_to_eof(fs::path file_path){
+        inline std::string read_to_eof(fs::path file_path){
                         std::ifstream file_data(file_path); //might optomise this later
                         std::stringstream file_contents;                                  
                         file_contents << file_data.rdbuf();
 
                         return file_contents.str();
         }
+
 
 
         FileStore() = default;
@@ -61,6 +62,8 @@ public:
                 static FileStore fs;
                 return fs;
         }
+
+        void copy_group_data(std::string hash, std::string &buf);
 
         //for file watcher
         int open_user_fd(const std::string &username);
@@ -73,6 +76,6 @@ public:
         void make_new_user(std::string &username, std::string &password);
         std::string get_group_data_payload(std::string &username);
         void write_chat(std::string &sender, std::string &group, std::string &message);
-        void create_group(std::string &grp_name, std::string &username, std::vector<std::string> &members);
+        int create_group(std::string &grp_name, std::string &username, std::vector<std::string> &members);
 
 };

@@ -24,6 +24,7 @@ void RegestrationHandler::handle_payload(std::istringstream &payload, SessionHan
         }
 
         FileStore::instance().make_new_user(username, password);
+        session.setClientUsername(username);
 
         char success_message[] = "0";
         send(client._fd, success_message, strlen(success_message), 0);
@@ -89,7 +90,9 @@ void CreateGroupHandler::handle_payload(std::istringstream &payload, SessionHand
                 payload >> members[i];
         }
 
-        FileStore::instance().create_group(grp_name, client._username, members);
+        int added = FileStore::instance().create_group(grp_name, client._username, members);
+
+        if(added < num_members) sendError(Protocol::INVALID_USERS, client._fd);
 
         return;
 }

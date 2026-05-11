@@ -108,6 +108,10 @@ void SessionHandler::file_watcher() {
 
                                 EV_SET(&event, new_fd, EVFILT_VNODE, EV_ADD | EV_CLEAR, NOTE_EXTEND, 0, nullptr);
                                 kevent(kq, &event, 1, nullptr, 0, nullptr);
+
+                                std::string payload = "3\n";
+                                FileStore::instance().copy_group_data(std::to_string(buf[0]), payload);
+                                send(client._fd, payload.c_str(), 1000, 0);
                         }
 
                         for(int cfd: chat_fd) {
@@ -117,7 +121,8 @@ void SessionHandler::file_watcher() {
                                         buf[valread] = '\0';
 
                                         std::string payload(buf);
-                                        payload = "1 " + std::to_string(cfd_to_hash[cfd]) + " " + payload;
+                                        payload = "2\n";
+                                        payload += std::to_string(cfd_to_hash[cfd]) + std::to_string(FIELD_SEP) + payload;
 
                                         send(client._fd, payload.c_str(), 1000, 0);
                                 }
