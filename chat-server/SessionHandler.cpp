@@ -103,14 +103,17 @@ void SessionHandler::file_watcher() {
                                 char buf[16];
                                 read(user_fd, buf, 16);
 
-                                int new_fd = FileStore::instance().open_new_chat_fd(std::to_string(buf[0]));
+                                std::string hs = ""; hs += buf[0];
+                                int new_fd = FileStore::instance().open_new_chat_fd(hs);
                                 chat_fd.push_back(new_fd);
+                                cfd_to_hash[new_fd] = std::stoi(hs);
 
                                 EV_SET(&event, new_fd, EVFILT_VNODE, EV_ADD | EV_CLEAR, NOTE_EXTEND, 0, nullptr);
                                 kevent(kq, &event, 1, nullptr, 0, nullptr);
 
                                 std::string payload = "3\n";
-                                FileStore::instance().copy_group_data(std::to_string(buf[0]), payload);
+                                FileStore::instance().copy_group_data(hs, payload);
+                                std::cout << payload << "\n";
                                 send(client._fd, payload.c_str(), strlen(payload.c_str()), 0);
                         }
 
@@ -120,9 +123,10 @@ void SessionHandler::file_watcher() {
                                         int valread = read(cfd, buf, KB);
                                         buf[valread] = '\0';
 
-                                        std::string payload(buf);
+                                        std::string payload;
                                         payload = "2\n";
-                                        payload += std::to_string(cfd_to_hash[cfd]) + std::to_string(FIELD_SEP) + payload;
+                                        payload += std::to_string(cfd_to_hash[cfd]) + FIELD_SEP + buf;
+                                        std::cout << "watcher message payload: "<< payload << "\n";
 
                                         send(client._fd, payload.c_str(), strlen(payload.c_str()), 0);
                                 }

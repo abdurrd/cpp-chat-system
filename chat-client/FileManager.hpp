@@ -9,6 +9,8 @@
 
 #include "ChatInfo.hpp"
 
+#include "Log.hpp"
+
 namespace fs = std::filesystem;
 
 class FileManager {
@@ -64,13 +66,19 @@ public:
                         fs::path chat_path = make_path(segs[0], Type::CHAT);
 
                         std::fstream group_file(group_path, std::ios::in | std::ios::out | std::ios::trunc);
-                        std::ofstream chat_file(chat_path, std::ios::trunc);
+                        std::ofstream chat_file(chat_path);
 
                         group_file << segs[1];
 
                         std::string name;
                         group_file.seekg(0);
                         group_file >> name;
+
+                        Log log{};
+
+                        log("FileManager::add_group chat_path: ", chat_path);
+                        log("FileManager::add_group hash: ", segs[0]);
+                        log("FileManager::add_group name: ", name);
 
                         _chats->push(ChatInfo(chat_path, segs[0], name));
 
@@ -109,7 +117,7 @@ public:
 
                 std::ofstream chat_file(chat_path, std::ios::app);
 
-                chat_file << segs[1] << "\n";
+                chat_file << segs[1];
         }
 
 };

@@ -12,11 +12,16 @@
 #include "../Protocol.hpp"
 #include "FileManager.hpp"
 
+#include "Log.hpp"
+
 #define KB 1024
 
 class Reciever {
         int _socket_fd;
         std::shared_ptr<FileManager> _file_manager;
+
+
+
 
 public:
         Reciever(int socket_fd, 
@@ -32,14 +37,18 @@ public:
                 Protocol proto;
                 payload >> proto; 
                 std::string data = payload.str().substr(payload.tellg());
-                data.substr(data.find_first_not_of(" /t/n"));
+                data = data.substr(data.find_first_not_of(" \t\n"));
 
                 switch(proto) {
                         case Protocol::MESSAGE:
                         {
                                 auto segs = data 
                                         | std::views::split(FIELD_SEP)
+                                        | std::views::filter([](auto s) {
+                                                return !s.empty();
+                                        }) 
                                         | std::ranges::to<std::vector<std::string>>();
+                                if(segs.size() != 2) break;
 
                                 _file_manager->append_message(segs[0], segs[1]);
                                 
@@ -49,7 +58,14 @@ public:
                         {
                                 auto segs = data
                                         | std::views::split(FIELD_SEP)
+                                        | std::views::filter([](auto s) {
+                                                return !s.empty();
+                                        }) 
                                         | std::ranges::to<std::vector<std::string>>();
+
+                                for(auto seg: segs) Log()("seg from Reciever::CREATE_GROUP", seg);
+
+                                if(segs.size() != 2) break;
 
                                 _file_manager->add_group(segs[0], segs[1]);
 

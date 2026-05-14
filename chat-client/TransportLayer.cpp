@@ -19,10 +19,7 @@ std::string TransportLayer::await_payload() {
                 return "";
         }
 
-        std::ofstream log("./client-data/logs.txt");
-
         buffer[read] = '\0';
-        log << buffer << "\n";
         return std::string(buffer);
 }
 
@@ -32,7 +29,7 @@ int TransportLayer::resolve_payload(std::string serv_payload) {
         Protocol proto;
         stream >> proto; 
         std::string data = stream.str().substr(stream.tellg());
-        data.substr(data.find_first_not_of(" /t/n"));
+        data = data.substr(data.find_first_not_of(" \t\n"));
 
         switch(proto) {
                 case Protocol::REGISTER:
@@ -54,7 +51,9 @@ int TransportLayer::resolve_payload(std::string serv_payload) {
                                         | std::views::split(FIELD_SEP) 
                                         | std::ranges::to<std::vector<std::string>>();
 
-                                _file_manager->add_group(segs[0], segs[1], segs[3]);
+                                if(segs.size() < 3) continue;
+
+                                _file_manager->add_group(segs[0], segs[1], segs[2]);
                         }
 
                         return 1;
@@ -123,7 +122,7 @@ void TransportLayer::send_message(std::string grp_hash, std::string &message) {
 
 void TransportLayer::create_group(std::string grp_name, int mem_num, std::vector<std::string> members) { 
         if(mem_num < 1) return;
-        if(grp_name.length() != 0) return;
+        if(grp_name.length() == 0) return;
         
         _payload = 
                 proto_to_s(Protocol::CREATE_GROUP) + " " 
@@ -133,7 +132,8 @@ void TransportLayer::create_group(std::string grp_name, int mem_num, std::vector
                                            //need to be transported
                                 
         for(auto &m : members) {
-                _payload += " " + m;
+                if(m.size() > 0)
+                        _payload += " " + m;
         }
 
         send_payload();

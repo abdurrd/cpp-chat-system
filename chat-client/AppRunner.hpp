@@ -5,11 +5,14 @@
 #include <memory.h>
 #include <memory>
 #include <queue>
+#include <ranges>
 
 #include "ChatInfo.hpp"
 #include "FileManager.hpp"
 #include "Reciever.hpp"
 #include "TransportLayer.hpp"
+
+#include "Log.hpp"
 
 #include "cpptui.hpp" //external header file from https://github.com/jonoton/cpp-tui.git
 
@@ -23,6 +26,8 @@ class AppRunner{
         TransportLayer transport_layer;
 
         int _client_fd;
+
+        Log log{};
 
 public:
         AppRunner(int client_fd)
@@ -138,7 +143,7 @@ public:
                         if(result != 1) {
                                 std::string message = "";
                                 switch(static_cast<Protocol>(result)) {
-                                        case Protocol::USER_NAME_TAKEN: message = "User name is taken";
+                                        case Protocol::USER_NAME_TAKEN: message = "User name is taken"; break;
 
                                         default: message = "Server Error";
                                 } 
@@ -210,15 +215,75 @@ public:
                 side_bar->fixed_width = 24;
 
                 //add functionality to add new group
-                auto modal = std::make_shared<Dialog>(&main_app, BorderStyle::Rounded, Color(0, 100, 0));
-                modal->add(std::make_shared<Label>("add group"));
-                auto close_btn = std::make_shared<Button>("X close", [main_app, modal] mutable {
-                        main_app.close_dialog(modal);
-                });
+                auto dlg = std::make_shared<Dialog>(&main_app, BorderStyle::Rounded);
+                dlg->set_title(" Enter Name ");
+                dlg->width = 40;
+                dlg->height = 10;
+                dlg->modal = true;
+                dlg->shadow = true;
+                dlg->bg_color = {30, 130, 50};
 
-                auto create_grp_button = std::make_shared<Button>("+ Add New", [this, main_app, modal] mutable {
-                        main_app.open_dialog(modal);
+                auto d_v = std::make_shared<Vertical>();
+                auto name_inp = std::make_shared<Input>();
+                name_inp->placeholder = "Group Name...";
+                name_inp->fixed_height = 1;
+                name_inp->bg_color = {20, 20, 70};
+
+                auto mem_inp = std::make_shared<Input>();
+                mem_inp->placeholder = "Members...";
+                mem_inp->fixed_height = 1;
+                mem_inp->bg_color = {20, 20, 70};
+
+                d_v->add(std::make_shared<Label>("Group Name:"));
+                d_v->add(name_inp);
+                d_v->add(std::make_shared<Label>("Member Names:"));
+                d_v->add(mem_inp);
+                d_v->add(std::make_shared<VerticalSpacer>());
+
+                auto h_btns = std::make_shared<Horizontal>();
+                h_btns->fixed_height = 1;
+
+                auto btn_submit = std::make_shared<Button>("Submit", [this, dlg, name_inp, mem_inp, notify] { 
+                        std::string grp_name = name_inp->get_value();
+                        std::string member_str = mem_inp->get_value();
+
+                        bool invalid_grpname = std::ranges::any_of(grp_name, [](char &c) {
+                                return !std::isalpha((unsigned char)c);
+                        });
+
+                        if(invalid_grpname) {
+                                notify("Group name can only have alphabets!", Notification::Type::Error);
+                        }
+
+                        auto members = member_str 
+                                | std::views::split(' ') 
+                                | std::ranges::to<std::vector<std::string>>();
+
+                        transport_layer.create_group(grp_name, members.size(), members);
+                                
+                        dlg->close(); 
                 });
+                btn_submit->bg_color = Theme::current().success;
+                h_btns->add(btn_submit);
+
+                h_btns->add(std::make_shared<Label>("  "));
+
+                auto btn_cancel = std::make_shared<Button>("Cancel", [dlg] { dlg->close(); });
+                btn_cancel->bg_color = Theme::current().error;
+                h_btns->add(btn_cancel);
+
+                d_v->add(h_btns);
+                dlg->add(d_v);
+
+                auto cgb_border = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 100, 0));
+                auto create_grp_button = std::make_shared<Button>("+ Add New", [dlg] {
+                        dlg->open(30, 4);
+                });
+                cgb_border->fixed_height = 3;
+                cgb_border-> add(create_grp_button);
+                side_bar->add(cgb_border);
+
+                side_bar->add(pd);
 
                 sidebar_box->add(side_bar);
 
@@ -249,7 +314,9 @@ public:
                                         notify("Select a group to send to!", Notification::Type::Info);
                                         return;
                                 }
+                                log("AppRunner::send_btn focused_chat hash:", focused_chat.getHash());
                                 transport_layer.send_message(focused_chat.getHash(), message);
+                                message_input->set_value("");
                 });
                 send_btn->bg_color = {26, 27, 38};
                 send_btn->hover_color = {26, 100, 38};
@@ -287,14 +354,20 @@ public:
                 main_app.add_timer(100, [&]{
                         while(!loaded_chats->empty()) {
                                 ChatInfo cht = loaded_chats->front();
-                                side_bar->add(std::make_shared<Button>(cht.getName(), [this, cht, chat_log, header_label, &cur_chat_file] {
+                                auto btn = std::make_shared<Button>(cht.getName(), [this, cht, chat_log, header_label, &cur_chat_file] {
                                         focused_chat = cht;
                                         chat_log->clear_children();
                                         header_label->set_text(cht.getName());
                                         cur_chat_file.close();
+                                        cur_chat_file.clear();
                                         cur_chat_file.open(cht.getPath());
-                                }));
+                                        cur_chat_file.seekg(0);
+                                });
+                                btn->fixed_height = 3;
+                                side_bar->add(btn);
                                 loaded_chats->pop();
+                                log("AppRunner::add_timer cht hash: ", cht.getHash());
+                                log("AppRunner::add_timer focused_chat hash: ", focused_chat.getHash());
                         }
 
                         if(!cur_chat_file.is_open()) return;

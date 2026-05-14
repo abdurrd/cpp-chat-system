@@ -64,6 +64,7 @@ void LoginHandler::handle_payload(std::istringstream &payload, SessionHandler &s
 
 
 void MesssageHandler::handle_payload(std::istringstream &payload, SessionHandler &session) {
+        std::cout << "MesssageHandler: " << payload.str() << "\n";
         std::string sender, group, message;
         payload >> sender >> group;
         std::getline(payload, message);
@@ -77,6 +78,7 @@ void MesssageHandler::handle_payload(std::istringstream &payload, SessionHandler
 
 
 void CreateGroupHandler::handle_payload(std::istringstream &payload, SessionHandler &session) {
+        std::cout << "Create group handler: " << payload.str() << "\n";
         auto client = session.getClient();
 
         std::string grp_name;
