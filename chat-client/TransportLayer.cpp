@@ -12,8 +12,8 @@ void TransportLayer::send_payload() {
 }
 
 std::string TransportLayer::await_payload() {
-        char buffer[1024];
-        int read = recv(_client_fd, buffer, 1024, 0);
+        char buffer[BUFFER_SIZE];
+        int read = recv(_client_fd, buffer, BUFFER_SIZE, 0);
         if(read <= 0) {
                 std::cout << " - Connection interupted\n";
                 return "";

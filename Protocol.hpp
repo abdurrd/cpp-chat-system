@@ -1,6 +1,8 @@
 #pragma once
 #include <iostream>
 
+#define BUFFER_SIZE 64*1024
+
 const char FIELD_SEP  = '\x1F';  
 const char RECORD_SEP = '\x1E';  
 const char GROUP_SEP  = '\x1D'; 

@@ -35,7 +35,6 @@ namespace fs = std::filesystem;
 
 #define PORT 8888
 #define MAX_CLIENTS 10
-#define BUFFER_SIZE 1024
 
 std::atomic<bool> running = true;
 void handle_exit(int) { running = false; }

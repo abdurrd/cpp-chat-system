@@ -37,9 +37,9 @@ void SessionHandler::init_watcher() {
 void SessionHandler::operator()() {
         std::cout << "Log: client #" << client._fd << " on thread: " << std::this_thread::get_id() << "\n";
 
-        char buffer[KB];
+        char buffer[BUFFER_SIZE];
         while(_running) {
-                int valread = recv(client._fd, buffer, KB, 0);
+                int valread = recv(client._fd, buffer, BUFFER_SIZE, 0);
                 if(valread == 0) {
                         std::cout << "Log: client #" << client._fd << " disconnected.\n";
                         break;
@@ -100,10 +100,13 @@ void SessionHandler::file_watcher() {
                         }
                 
                         if(triggered[i].ident == static_cast<uintptr_t>(user_fd)) {
-                                char buf[16];
-                                read(user_fd, buf, 16);
+                                std::unique_lock<std::mutex> user_lock(FileStore::instance().get_user_mutex());
+                                char buf[8];
+                                read(user_fd, buf, 8);
+                                user_lock.unlock();
 
-                                std::string hs = ""; hs += buf[0];
+                                std::string hs = buf;
+                                hs.erase(hs.find_last_not_of(" \t\n\r") + 1);
                                 int new_fd = FileStore::instance().open_new_chat_fd(hs);
                                 chat_fd.push_back(new_fd);
                                 cfd_to_hash[new_fd] = std::stoi(hs);
@@ -113,14 +116,14 @@ void SessionHandler::file_watcher() {
 
                                 std::string payload = "3\n";
                                 FileStore::instance().copy_group_data(hs, payload);
-                                std::cout << payload << "\n";
+                                std::cout << "file watcher: \n" << payload << "\n";
                                 send(client._fd, payload.c_str(), strlen(payload.c_str()), 0);
                         }
 
                         for(int cfd: chat_fd) {
                                 if(triggered[i].ident == static_cast<uintptr_t>(cfd)) {
-                                        char buf[KB];
-                                        int valread = read(cfd, buf, KB);
+                                        char buf[BUFFER_SIZE];
+                                        int valread = read(cfd, buf, BUFFER_SIZE);
                                         buf[valread] = '\0';
 
                                         std::string payload;

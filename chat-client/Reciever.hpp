@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <sstream>
 #include <thread>
+#include <unistd.h>
 #include <vector>
 #include <ranges>
 
@@ -14,21 +15,20 @@
 
 #include "Log.hpp"
 
-#define KB 1024
+#define BUFFER_SIZE 64*1024
 
 class Reciever {
         int _socket_fd;
         std::shared_ptr<FileManager> _file_manager;
 
-
-
-
+        std::shared_ptr<bool> _running;
 public:
         Reciever(int socket_fd, 
-                std::shared_ptr<FileManager> file_manager) 
+                std::shared_ptr<FileManager> file_manager, std::shared_ptr<bool> running) 
                 : 
                 _socket_fd(socket_fd),
-                _file_manager(file_manager)
+                _file_manager(file_manager),
+                _running(running)
         {}
 
         void resolver(std::string buffer){
@@ -87,9 +87,9 @@ public:
         }
 
         void operator()(){
-                char buffer[KB];
-                for(;;) {
-                        int valread = recv(_socket_fd, buffer, KB, 0);
+                char buffer[BUFFER_SIZE];
+                while(_running) {
+                        int valread = recv(_socket_fd, buffer, BUFFER_SIZE, 0);
                         if(valread <= 0) {
                                 std::cout << " - Connection interupted\n";
                                 break;
@@ -99,6 +99,7 @@ public:
 
                         resolver(payload);
                 }
+                close(_socket_fd);
 
                 return;
         }

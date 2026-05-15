@@ -19,9 +19,6 @@
 #include "../Protocol.hpp"
 #include "ProtocolHandeler.hpp"
 
-
-#define KB 1024
-
 class SessionHandler {
 private:
         std::thread _watcher_thread; 

@@ -8,7 +8,6 @@
 #include <arpa/inet.h>
 
 #define PORT 8888
-#define BUFFER_SIZE 1024
 
 #include "AppRunner.hpp"
 

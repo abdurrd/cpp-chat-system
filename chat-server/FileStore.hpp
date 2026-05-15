@@ -11,9 +11,9 @@ namespace fs = std::filesystem;
 
 class FileStore {
 
-        std::mutex _user_mutex;
-        std::mutex _group_mutex;
-        std::mutex _chat_mutex;
+        inline static std::mutex _user_mutex;
+        inline static std::mutex _group_mutex;
+        inline static std::mutex _chat_mutex;
         
         std::string user_path_prefix = "./server-data/users/";
         std::string group_path_prefix = "./server-data/groups/";
@@ -63,6 +63,11 @@ public:
         }
 
         void copy_group_data(std::string hash, std::string &buf);
+        
+        //getters
+        std::mutex& get_user_mutex() const;
+        std::mutex& get_chat_mutex() const;
+        std::mutex& get_group_mutex() const;
 
         //for file watcher
         int open_user_fd(const std::string &username);

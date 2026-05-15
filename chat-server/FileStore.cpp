@@ -12,11 +12,23 @@
 void FileStore::copy_group_data(std::string hash, std::string &buf) {
         buf += hash;                                                                                           
         buf += FIELD_SEP;
-
+        
+        std::lock_guard<std::mutex> g_lock(_group_mutex);
+        std::lock_guard<std::mutex> c_lock(_chat_mutex);
         buf += read_to_eof(make_path(hash, Type::GROUP));
         buf += FIELD_SEP;
         buf += read_to_eof(make_path(hash, Type::CHAT));
         buf += FIELD_SEP;
+}
+
+std::mutex& FileStore::get_user_mutex() const {
+        return _user_mutex;
+}
+std::mutex& FileStore::get_chat_mutex() const {
+        return _chat_mutex;
+}
+std::mutex& FileStore::get_group_mutex() const {
+        return _group_mutex;
 }
 
 //file watching
@@ -171,21 +183,27 @@ int FileStore::create_group(std::string &grp_name, std::string &username, std::v
                 new_grp_file << user << "\n";
         }
 
-        fs::path cur_path(make_path(username, Type::USER));
-        std::ofstream cur_file(cur_path, std::ios::app);
-        cur_file << group_hash << "\n";
-
-        for(std::string user: valid_members) {
-                fs::path user_path(make_path(user, Type::USER));
-                std::ofstream user_file(user_path, std::ios::app);
-                user_file << group_hash << "\n";
-        }
+        new_grp_file.close();
+        new_chat.close();
 
         gh_file.close();
 
         std::ofstream rewrite(group_hash_path, std::ios::trunc);
         rewrite << group_hash;
-
         lock.unlock();
+
+        std::unique_lock<std::mutex> lock_user(_user_mutex);
+        fs::path cur_path(make_path(username, Type::USER));
+        std::ofstream cur_file(cur_path, std::ios::app);
+        cur_file << group_hash << "\n";
+        cur_file.close();
+
+        for(std::string user: valid_members) {
+                fs::path user_path(make_path(user, Type::USER));
+                std::ofstream user_file(user_path, std::ios::app);
+                user_file << group_hash << "\n";
+                user_file.close();
+        }
+
         return valid_members.size()+1;
 }

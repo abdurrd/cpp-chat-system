@@ -6,6 +6,7 @@
 #include <memory>
 #include <queue>
 #include <ranges>
+#include <unistd.h>
 
 #include "ChatInfo.hpp"
 #include "FileManager.hpp"
@@ -26,6 +27,8 @@ class AppRunner{
         TransportLayer transport_layer;
 
         int _client_fd;
+
+        std::shared_ptr<bool> _running = std::make_shared<bool>(false);
 
         Log log{};
 
@@ -260,7 +263,9 @@ public:
                                 | std::ranges::to<std::vector<std::string>>();
 
                         transport_layer.create_group(grp_name, members.size(), members);
-                                
+
+                        name_inp->set_value("");
+                        mem_inp->set_value("");
                         dlg->close(); 
                 });
                 btn_submit->bg_color = Theme::current().success;
@@ -314,7 +319,6 @@ public:
                                         notify("Select a group to send to!", Notification::Type::Info);
                                         return;
                                 }
-                                log("AppRunner::send_btn focused_chat hash:", focused_chat.getHash());
                                 transport_layer.send_message(focused_chat.getHash(), message);
                                 message_input->set_value("");
                 });
@@ -366,8 +370,6 @@ public:
                                 btn->fixed_height = 3;
                                 side_bar->add(btn);
                                 loaded_chats->pop();
-                                log("AppRunner::add_timer cht hash: ", cht.getHash());
-                                log("AppRunner::add_timer focused_chat hash: ", focused_chat.getHash());
                         }
 
                         if(!cur_chat_file.is_open()) return;
@@ -381,13 +383,15 @@ public:
                 main_app.register_exit_key('q');
 
                 //create thread for receiver
-                std::thread receiver_thread{Reciever{_client_fd, file_manager}};
+                std::thread receiver_thread{Reciever{_client_fd, file_manager, _running}};
                 main_app.run(root);
 
+                *_running = false;
                 if(receiver_thread.joinable()) receiver_thread.join();
         }
 
         void run() {
+                *_running = true;
                 login_page();
                 main_page();
         }
