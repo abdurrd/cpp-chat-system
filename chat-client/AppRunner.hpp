@@ -13,31 +13,27 @@
 #include "Reciever.hpp"
 #include "TransportLayer.hpp"
 
-#include "Log.hpp"
+#include "LoginPage.hpp"
+#include "ChatPage.hpp"
+
 
 #include "cpptui.hpp" //external header file from https://github.com/jonoton/cpp-tui.git
 
-using namespace cpptui;
 
-class AppRunner{
-        std::shared_ptr<bool> LoggedIn = std::make_shared<bool>(false);
-        std::shared_ptr<std::queue<ChatInfo>> loaded_chats = std::make_shared<std::queue<ChatInfo>>();
-        ChatInfo focused_chat;
-        std::shared_ptr<FileManager> file_manager = std::make_shared<FileManager>(loaded_chats);
-        TransportLayer transport_layer;
-
+class AppRunner {
         int _client_fd;
 
+        std::shared_ptr<std::queue<ChatInfo>> _loaded_chats = std::make_shared<std::queue<ChatInfo>>();
+        std::shared_ptr<FileManager> _file_manager = std::make_shared<FileManager>(_loaded_chats);
+        std::shared_ptr<TransportLayer> _transport_layer;
+
+        std::shared_ptr<bool> _loggedIn = std::make_shared<bool>(false);
         std::shared_ptr<std::string> _username = std::make_shared<std::string>("");
 
         std::shared_ptr<bool> _running = std::make_shared<bool>(false);
 
-        Log log{};
-
 public:
         AppRunner(int client_fd);
-
-        void login_page();
-        void main_page();
         void run();
 };
+

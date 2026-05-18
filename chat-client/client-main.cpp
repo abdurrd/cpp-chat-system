@@ -43,6 +43,8 @@ int main() {
 
         //init app
         AppRunner app(sock);
+
+        //run app
         app.run();
         
 	return 0;
