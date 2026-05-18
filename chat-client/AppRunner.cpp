@@ -387,8 +387,6 @@ void AppRunner::main_page() {
                 }
 
                 if(read_content) {
-                        std::cerr << "Content height: " << chat_log->content_height << std::endl;
-                        std::cerr << "Height: " << chat_log->height << std::endl;
                         chat_log->scroll_offset = std::max(0, (chat_log->content_height - chat_log->height));
                         read_content = false;
                 }
