@@ -1,4 +1,5 @@
 #include "TransportLayer.hpp"
+#include <string>
 
 std::string TransportLayer::proto_to_s(Protocol proto) {
         return std::to_string(static_cast<int>(proto));
@@ -23,7 +24,7 @@ std::string TransportLayer::await_payload() {
         return std::string(buffer);
 }
 
-int TransportLayer::resolve_payload(std::string serv_payload) {
+int TransportLayer::resolve_payload(std::string serv_payload, std::string &user) {
         std::istringstream stream(serv_payload);
 
         Protocol proto;
@@ -53,7 +54,13 @@ int TransportLayer::resolve_payload(std::string serv_payload) {
 
                                 if(segs.size() < 3) continue;
 
-                                _file_manager->add_group(segs[0], segs[1], segs[2]);
+                                std::istringstream grp_info(segs[1]);
+
+                                std::string admin;
+                                std::getline(grp_info, admin);
+                                std::getline(grp_info, admin);
+
+                                _file_manager->add_group(user == admin, segs[0], segs[1], segs[2]);
                         }
 
                         return 1;
@@ -72,11 +79,12 @@ int TransportLayer::resolve_payload(std::string serv_payload) {
 }
 
 
-TransportLayer::TransportLayer(int client_fd, std::shared_ptr<bool> login, std::shared_ptr<FileManager> file_manager)
+TransportLayer::TransportLayer(int client_fd, std::shared_ptr<bool> login, std::shared_ptr<FileManager> file_manager, std::shared_ptr<std::string> username)
         :
         _client_fd(client_fd),
         _loggedin(login),
-        _file_manager(file_manager)
+        _file_manager(file_manager),
+        _username(username)
 {}
 
 int TransportLayer::create_user(std::string &username, std::string &password) {
@@ -87,9 +95,9 @@ int TransportLayer::create_user(std::string &username, std::string &password) {
 
         send_payload();
         std::string serv_payload = await_payload();
-        int res = resolve_payload(serv_payload);
+        int res = resolve_payload(serv_payload, username);
 
-        if(res == 0) _username = username;
+        if(res == 0) *_username = username;
         return res;
 }
 
@@ -101,9 +109,9 @@ int TransportLayer::login_user(std::string &username, std::string &password) {
 
         send_payload();
         std::string serv_payload = await_payload();
-        int res = resolve_payload(serv_payload);
+        int res = resolve_payload(serv_payload, username);
 
-        if(res == 1) _username = username;
+        if(res == 1) *_username = username;
         return res;
 }
 
@@ -112,7 +120,7 @@ void TransportLayer::send_message(std::string grp_hash, std::string &message) {
         // sender + group + message
         _payload = 
                 proto_to_s(Protocol::MESSAGE) + " " 
-                + _username + " " 
+                + *_username + " " 
                 + grp_hash + " " 
                 + message; 
 

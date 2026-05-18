@@ -12,21 +12,21 @@
 #include "FileManager.hpp"
 
 class TransportLayer {
-        std::string _username;
         int _client_fd;
         std::string _payload;
         std::shared_ptr<bool> _loggedin;
         std::shared_ptr<FileManager> _file_manager;
+        std::shared_ptr<std::string> _username;
 
         std::string proto_to_s(Protocol proto);
         void send_payload();
         std::string await_payload();
-        int resolve_payload(std::string serv_payload);
+        int resolve_payload(std::string serv_payload, std::string &user);
 
 public:
 
         TransportLayer() = default;
-        TransportLayer(int client_fd, std::shared_ptr<bool> login, std::shared_ptr<FileManager> file_manager);
+        TransportLayer(int client_fd, std::shared_ptr<bool> login, std::shared_ptr<FileManager> file_manager, std::shared_ptr<std::string> username);
         
         int create_user(std::string &username, std::string &password);
         int login_user(std::string &username, std::string &password);

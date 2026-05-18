@@ -1,10 +1,11 @@
 #include "Reciever.hpp"
 
 Reciever::Reciever(int socket_fd, 
-        std::shared_ptr<FileManager> file_manager, std::shared_ptr<bool> running) 
+        std::shared_ptr<FileManager> file_manager, std::shared_ptr<std::string> user, std::shared_ptr<bool> running) 
         : 
         _socket_fd(socket_fd),
         _file_manager(file_manager),
+        _username(user),
         _running(running)
 {}
 
@@ -43,8 +44,13 @@ void Reciever::resolver(std::string buffer){
                         for(auto seg: segs) Log()("seg from Reciever::CREATE_GROUP", seg);
 
                         if(segs.size() != 2) break;
+                        std::istringstream grp_info(segs[1]);
 
-                        _file_manager->add_group(segs[0], segs[1]);
+                        std::string admin;
+                        std::getline(grp_info, admin);
+                        std::getline(grp_info, admin);
+
+                        _file_manager->add_group(*_username == admin, segs[0], segs[1]);
 
                         break;
                 }
@@ -76,7 +82,6 @@ void Reciever::operator()(){
 
                 resolver(payload);
         }
-        close(_socket_fd);
 
         return;
 }

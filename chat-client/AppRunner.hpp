@@ -28,6 +28,8 @@ class AppRunner{
 
         int _client_fd;
 
+        std::shared_ptr<std::string> _username = std::make_shared<std::string>("");
+
         std::shared_ptr<bool> _running = std::make_shared<bool>(false);
 
         Log log{};

@@ -33,7 +33,7 @@ public:
         static fs::path make_path(std::string hash, Type type);
 
         template<class... Segs>
-        void add_group(Segs... segments) {
+        void add_group(bool isAdmin, Segs... segments) {
                 assert(sizeof...(segments) >= 2);
 
                 if(sizeof...(segments) == 2) {
@@ -60,7 +60,7 @@ public:
                         log("FileManager::add_group hash: ", segs[0]);
                         log("FileManager::add_group name: ", name);
 
-                        _chats->push(ChatInfo(chat_path, segs[0], name));
+                        _chats->push(ChatInfo(chat_path, segs[0], name, isAdmin));
 
                         return;
                 }
@@ -83,7 +83,7 @@ public:
                 group_file.seekg(0);
                 group_file >> name;
 
-                _chats->push(ChatInfo(chat_path, segs[0], name));
+                _chats->push(ChatInfo(chat_path, segs[0], name, isAdmin));
         }
 
         template<class... Segs>

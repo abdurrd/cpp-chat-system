@@ -21,9 +21,11 @@ class Reciever {
         int _socket_fd;
         std::shared_ptr<FileManager> _file_manager;
 
+        std::shared_ptr<std::string> _username;
+
         std::shared_ptr<bool> _running;
 public:
-        Reciever(int socket_fd, std::shared_ptr<FileManager> file_manager, std::shared_ptr<bool> running);
+        Reciever(int socket_fd, std::shared_ptr<FileManager> file_manager, std::shared_ptr<std::string> user, std::shared_ptr<bool> running);
 
         void resolver(std::string buffer);
         void operator()();

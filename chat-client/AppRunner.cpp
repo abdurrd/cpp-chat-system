@@ -1,9 +1,11 @@
 #include "AppRunner.hpp"
+#include <sstream>
+#include <string>
 
 AppRunner::AppRunner(int client_fd)
         : _client_fd(client_fd)
 {
-        transport_layer = TransportLayer(_client_fd, LoggedIn, file_manager);
+        transport_layer = TransportLayer(_client_fd, LoggedIn, file_manager, _username);
 }
 
 void AppRunner::login_page() {
@@ -172,7 +174,13 @@ void AppRunner::main_page() {
                 notif->show(message, type, 3000);
         };
         
+        auto header = std::make_shared<Horizontal>();
+        header->fixed_height = 1;
         std::shared_ptr<Label> header_label = std::make_shared<Label>("-- No chat opened --");
+
+        header->add(std::make_shared<HorizontalSpacer>(1));
+        header->add(header_label);
+        header->add(std::make_shared<HorizontalSpacer>(1));
 
         //sidebar
         auto sidebar_box = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 120, 0));
@@ -279,7 +287,7 @@ void AppRunner::main_page() {
         auto send_box = std::make_shared<Border> (BorderStyle::Rounded, Color(0, 150, 0));
         send_box->fixed_width = 15;
 
-        auto send_btn = std::make_shared<Button>("Send", [this, message_input, notify] {
+        auto send_btn = std::make_shared<Button>("Send", [this, message_input, chat_log, notify] {
                         std::string message = message_input->get_value();
                         if(message.length() == 0) return;
                         if(focused_chat.getHash() == "-1") {
@@ -287,6 +295,7 @@ void AppRunner::main_page() {
                                 return;
                         }
                         transport_layer.send_message(focused_chat.getHash(), message);
+
                         message_input->set_value("");
         });
         send_btn->bg_color = {26, 27, 38};
@@ -309,7 +318,7 @@ void AppRunner::main_page() {
         auto panel_box = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 100, 38));
 
         auto chat_panel = std::make_shared<Vertical>();
-        chat_panel->add(header_label);
+        chat_panel->add(header);
         chat_panel->add(log_box);
         chat_panel->add(input_row);
 
@@ -321,37 +330,106 @@ void AppRunner::main_page() {
         root->add(panel_box);
 
         std::ifstream cur_chat_file;
-        
+        bool read_content = false;
+
         main_app.add_timer(100, [&]{
                 while(!loaded_chats->empty()) {
                         ChatInfo cht = loaded_chats->front();
-                        auto btn = std::make_shared<Button>(cht.getName(), [this, cht, chat_log, header_label, &cur_chat_file] {
+                        std::shared_ptr<Button> btn; 
+                        auto btn_holder = std::make_shared<std::shared_ptr<Button>>(nullptr); 
+                        btn = std::make_shared<Button>(cht.getName(), [this, btn_holder, cht, chat_log, header, &cur_chat_file] {
                                 focused_chat = cht;
+
                                 chat_log->clear_children();
-                                header_label->set_text(cht.getName());
+                                header->clear_children();
+                                
+                                std::shared_ptr<Label> header_label = std::make_shared<Label>(cht.getName());
+                                header->add(std::make_shared<HorizontalSpacer>(1));
+                                header->add(header_label);
+
+                                if(cht.isAdmin()) {
+                                        auto delete_button = std::make_shared<Button>("Delete", [this, btn_holder, header, cht, chat_log]{
+                                                std::shared_ptr<Label> header_label = std::make_shared<Label>("-- No chat opened --");
+                                                header->clear_children();
+                                                header->add(std::make_shared<HorizontalSpacer>(1));
+                                                header->add(header_label);
+                                                header->add(std::make_shared<HorizontalSpacer>(1));
+
+                                                chat_log->clear_children();
+
+                                                (*btn_holder)->visible = false;
+
+                                                //transport_layer.delete_group(cht.getHash());
+                                        });
+
+                                        delete_button->bg_color = {150, 20, 0};
+                                        delete_button->hover_color = {120, 20, 0};
+                                        delete_button->focus_color = {180, 10, 0};
+
+                                        delete_button->fixed_height = 1;
+                                        delete_button->fixed_width = 10;
+
+                                        header->add(delete_button);
+                                }
+                                
+                                header->add(std::make_shared<HorizontalSpacer>(1));
+
+
                                 cur_chat_file.close();
                                 cur_chat_file.clear();
                                 cur_chat_file.open(cht.getPath());
                                 cur_chat_file.seekg(0);
                         });
                         btn->fixed_height = 3;
+                        *btn_holder = btn;
                         side_bar->add(btn);
                         loaded_chats->pop();
                 }
 
-                if(!cur_chat_file.is_open()) return;
-                std::string message;
-                while(std::getline(cur_chat_file, message)) {
-                        chat_log->add(std::make_shared<Label>(message));
+                if(read_content) {
+                        std::cerr << "Content height: " << chat_log->content_height << std::endl;
+                        std::cerr << "Height: " << chat_log->height << std::endl;
+                        chat_log->scroll_offset = std::max(0, (chat_log->content_height - chat_log->height));
+                        read_content = false;
                 }
+
+                if(!cur_chat_file.is_open()) return;
+                std::string content;
+                while(std::getline(cur_chat_file, content)) {
+                        read_content = true;
+                        std::istringstream parsed(content);
+                        std::string sender;
+                        std::string message;
+
+                        std::getline(parsed, sender, ' ');
+                        std::getline(parsed, message, '\n');
+
+                        auto border = std::make_shared<Border>(BorderStyle::Rounded, Color{0, 120, 0});
+                        border->fixed_height = 4;
+                        border->responsive_width = true;
+                        border->bg_color = (*_username == sender) ? Color{0, 120, 0} : Color{0, 0, 0};
+                        border->fg_color = (*_username == sender) ? Color{0, 120, 0} : Color{0, 0, 0};
+
+                        auto bubble = std::make_shared<Vertical>();
+                        bubble->fixed_height = 4;
+                        bubble->add(std::make_shared<Label>(sender));
+                        bubble->add(std::make_shared<Label>(message));
+
+                        border->add(bubble);
+                        
+                        chat_log->add(border);
+                }
+
                 if(cur_chat_file.eof()) cur_chat_file.clear();                
         });
 
         main_app.register_exit_key('q');
 
         //create thread for receiver
-        std::thread receiver_thread{Reciever{_client_fd, file_manager, _running}};
+        std::thread receiver_thread{Reciever{_client_fd, file_manager, _username, _running}};
         main_app.run(root);
+
+        close(_client_fd);
 
         *_running = false;
         if(receiver_thread.joinable()) receiver_thread.join();
