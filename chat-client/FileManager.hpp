@@ -28,29 +28,9 @@ class FileManager {
         };
 
 public:
-        FileManager(std::shared_ptr<std::queue<ChatInfo>> chats)
-                :
-                _chats(chats)
+        FileManager(std::shared_ptr<std::queue<ChatInfo>> chats);
 
-        {
-                fs::create_directories(group_path_prefix);
-                fs::create_directories(chat_path_prefix);
-        }
-
-        static inline fs::path make_path(std::string hash, Type type) {
-                std::string path_str;
-
-                switch(type) {
-                        case Type::GROUP: path_str = group_path_prefix; break;
-                        case Type::CHAT: path_str = chat_path_prefix; break;
-                }
-
-                path_str += hash + ".txt";
-
-                fs::path file_path = path_str;
-
-                return file_path;
-        } 
+        static fs::path make_path(std::string hash, Type type);
 
         template<class... Segs>
         void add_group(Segs... segments) {

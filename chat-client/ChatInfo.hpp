@@ -12,23 +12,9 @@ class ChatInfo {
 
 public:
         ChatInfo() = default;
-        ChatInfo(fs::path chat_path, std::string chat_hash, std::string name) 
-                :
-                _chat_path(chat_path),
-                _chat_hash(chat_hash),
-                _name(name)
-        {}
+        ChatInfo(fs::path chat_path, std::string chat_hash, std::string name);
 
-        fs::path getPath() const {
-                return _chat_path;
-        }
-
-        std::string getHash() const {
-                return _chat_hash;
-        }
-
-        std::string getName() const {
-                return _name;
-        }
-
+        fs::path getPath() const;
+        std::string getHash() const;
+        std::string getName() const;
 };
