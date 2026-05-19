@@ -3,6 +3,7 @@
 #include "ProtocolHandeler.hpp"
 #include "SessionHandler.hpp"
 #include "FileStore.hpp"
+#include "ProtocalExpections.hpp"
 #include <string>
 
 void ProtocolHandler::sendError(Protocol error_code, int clientfd) {
@@ -11,6 +12,7 @@ void ProtocolHandler::sendError(Protocol error_code, int clientfd) {
 }
  
 void RegestrationHandler::handle_payload(std::istringstream &payload, SessionHandler &session) {
+        std::cout << "Signup proto: " << payload.str() << "\n";
         auto client = session.getClient();
 
         std::string username, password;
@@ -20,14 +22,15 @@ void RegestrationHandler::handle_payload(std::istringstream &payload, SessionHan
 
         if(result) {
                 sendError(Protocol::USER_NAME_TAKEN, client._fd);
+                throw ProtocalExpection(ProtocalExpection(Protocol::USER_NAME_TAKEN));
                 return;
         }
 
         FileStore::instance().make_new_user(username, password);
         session.setClientUsername(username);
 
-        char success_message[] = "0";
-        send(client._fd, success_message, strlen(success_message), 0);
+        std::string success_message = "0";
+        send(client._fd, success_message.c_str(), strlen(success_message.c_str()), 0);
 
 }
 
@@ -43,6 +46,8 @@ void LoginHandler::handle_payload(std::istringstream &payload, SessionHandler &s
         if(!result) {
                 std::cout << "Not found" << "\n";
                 sendError(Protocol::USER_NOT_FOUND, client._fd);
+                throw ProtocalExpection(ProtocalExpection(Protocol::USER_NOT_FOUND));
+
                 return;
         }
         
@@ -50,6 +55,7 @@ void LoginHandler::handle_payload(std::istringstream &payload, SessionHandler &s
 
         if(u_password != password) {
                 sendError(Protocol::WRG_PASSWORD, client._fd);
+                throw ProtocalExpection(ProtocalExpection(Protocol::WRG_PASSWORD));
                 return;
         }
 
@@ -95,6 +101,7 @@ void CreateGroupHandler::handle_payload(std::istringstream &payload, SessionHand
         int added = FileStore::instance().create_group(grp_name, client._username, members);
 
         if(added < num_members) sendError(Protocol::INVALID_USERS, client._fd);
+        throw ProtocalExpection(ProtocalExpection(Protocol::INVALID_USERS));
 
         return;
 }

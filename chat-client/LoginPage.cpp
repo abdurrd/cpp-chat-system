@@ -3,9 +3,6 @@
 LoginPage::LoginPage(std::shared_ptr<TransportLayer> transport_layer) : Page(transport_layer){}
 
 void LoginPage::construct() {
-        std::string u_username;
-        std::string u_password;
-
         auto login_box = std::make_shared<Border>(BorderStyle::Rounded, Color(0, 120, 0));
         login_box->fixed_height = 3;
 
@@ -65,54 +62,45 @@ void LoginPage::construct() {
 
         auto btn_sec = std::make_shared<Horizontal>();
 
-        auto login_btn = std::make_shared<Button>("Login", [&] {
-                u_username = username_input->get_value();
-                u_password = pass_input->get_value();
+        auto login_btn = std::make_shared<Button>("Login", [this, username_input, pass_input, notify, validation_check] {
+                std::string u_username = username_input->get_value();
+                std::string u_password = pass_input->get_value();
                 
                 bool valid = validation_check(u_username, u_password);
-
                 if(!valid) return;
 
                 int result = _transport_layer->login_user(u_username, u_password);
-
                 if(result != 1) {
                         std::string message = "";
                         switch(static_cast<Protocol>(result)) {
                                 case Protocol::USER_NOT_FOUND: message = "User Not Found"; break;
                                 case Protocol::WRG_PASSWORD: message = "Wrong password"; break;
-
                                 default: message = "Server Error";
                         } 
                         notify(message, Notification::Type::Error);
                         return;
                 }
-
                 notify("Login Successful", Notification::Type::Success);
-
                 Page::quit();
         });
 
-        auto signup_btn = std::make_shared<Button>("Signup", [&] {
-                u_username = username_input->get_value();
-                u_password = pass_input->get_value();
+        auto signup_btn = std::make_shared<Button>("Signup", [this, username_input, pass_input, notify, validation_check] {
+                std::string u_username = username_input->get_value();
+                std::string u_password = pass_input->get_value();
                 
                 bool valid = validation_check(u_username, u_password);
-
                 if(!valid) return;
 
                 int result = _transport_layer->create_user(u_username, u_password);
-
-                if(result != 1) {
+                if(result != 0) {
                         std::string message = "";
                         switch(static_cast<Protocol>(result)) {
                                 case Protocol::USER_NAME_TAKEN: message = "User name is taken"; break;
-
                                 default: message = "Server Error";
                         } 
                         notify(message, Notification::Type::Error);
                         return;
                 }
-
                 notify("Signup and Login Successful", Notification::Type::Success);
                 Page::quit();
         });

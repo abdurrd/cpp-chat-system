@@ -12,6 +12,7 @@ enum class Protocol {
         LOGIN,
         MESSAGE,
         CREATE_GROUP,
+        DELETE_GROUP,
 
         USER_NAME_TAKEN = -1,
         USER_NOT_FOUND = -2,
@@ -35,6 +36,7 @@ inline std::ostream &operator<<(std::ostream &os, Protocol &proto) {
                 case Protocol::LOGIN: s_proto = "LOGIN";break;
                 case Protocol::MESSAGE: s_proto = "MESSAGE";break;
                 case Protocol::CREATE_GROUP: s_proto = "CREATE_GROUP";break;
+                case Protocol::DELETE_GROUP: s_proto = "DELETE_GROUP";break;
 
                 case Protocol::USER_NAME_TAKEN: s_proto = "USER_NAME_TAKEN";break;
                 case Protocol::USER_NOT_FOUND: s_proto = "USER_NOT_FOUND";break;

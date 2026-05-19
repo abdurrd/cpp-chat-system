@@ -21,7 +21,7 @@ class TransportLayer {
         std::string proto_to_s(Protocol proto);
         void send_payload();
         std::string await_payload();
-        int resolve_payload(std::string serv_payload, std::string &user);
+        int resolve_payload(std::string &serv_payload, std::string &user);
 
 public:
 
@@ -31,5 +31,6 @@ public:
         int create_user(std::string &username, std::string &password);
         int login_user(std::string &username, std::string &password);
         void send_message(std::string grp_hash, std::string &message);
-        void create_group(std::string grp_name, int mem_num, std::vector<std::string> members);
+        void create_group(std::string &grp_name, int mem_num, std::vector<std::string> &members);
+        void delete_group(std::string &grp_hash);
 };

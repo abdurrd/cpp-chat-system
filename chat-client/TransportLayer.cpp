@@ -24,13 +24,16 @@ std::string TransportLayer::await_payload() {
         return std::string(buffer);
 }
 
-int TransportLayer::resolve_payload(std::string serv_payload, std::string &user) {
+int TransportLayer::resolve_payload(std::string &serv_payload, std::string &user) {
         std::istringstream stream(serv_payload);
 
         Protocol proto;
         stream >> proto; 
-        std::string data = stream.str().substr(stream.tellg());
-        data = data.substr(data.find_first_not_of(" \t\n"));
+
+        std::string data;
+        if(stream.tellg() >= 0) data = stream.str().substr(stream.tellg());
+        int pos = data.find_first_not_of(" \t\n");
+        data = (pos >= 0) ? data.substr(pos) : "";
 
         switch(proto) {
                 case Protocol::REGISTER:
@@ -128,7 +131,7 @@ void TransportLayer::send_message(std::string grp_hash, std::string &message) {
         return;
 }
 
-void TransportLayer::create_group(std::string grp_name, int mem_num, std::vector<std::string> members) { 
+void TransportLayer::create_group(std::string &grp_name, int mem_num, std::vector<std::string> &members) { 
         if(mem_num < 1) return;
         if(grp_name.length() == 0) return;
         
@@ -148,3 +151,7 @@ void TransportLayer::create_group(std::string grp_name, int mem_num, std::vector
         return;
 }
 
+
+void TransportLayer::delete_group(std::string &grp_hash) {
+        
+}

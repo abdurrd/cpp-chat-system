@@ -17,9 +17,6 @@
 #include "ChatPage.hpp"
 
 
-#include "cpptui.hpp" //external header file from https://github.com/jonoton/cpp-tui.git
-
-
 class AppRunner {
         int _client_fd;
 

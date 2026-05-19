@@ -2,6 +2,7 @@
 #include "FileStore.hpp"
 #include <string>
 
+
 std::unordered_map<Protocol, std::unique_ptr<ProtocolHandler>> SessionHandler::_handlers = []{
         std::unordered_map<Protocol, std::unique_ptr<ProtocolHandler>> m;
 
@@ -50,12 +51,15 @@ void SessionHandler::operator()() {
 
                 Protocol protocol;
                 payload >> protocol;
-                
-                if(_handlers.find(protocol)== _handlers.end()) {
-                        std::cout << "Recieved non server specific protocol: " << protocol << "\n";
-                        std::cout << "With payload: " << payload.str() << "\n";
-                } 
-                else _handlers[protocol]->handle_payload(payload, *this);
+               try {
+                        if(_handlers.find(protocol)== _handlers.end()) {
+                                std::cout << "Recieved non server specific protocol: " << protocol << "\n";
+                                std::cout << "With payload: " << payload.str() << "\n";
+                        } 
+                        else _handlers[protocol]->handle_payload(payload, *this);
+               } catch (const std::exception &e) {
+                       std::cout << e.what() << "\n";
+               }
 
         }
 

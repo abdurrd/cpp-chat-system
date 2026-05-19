@@ -29,7 +29,7 @@ int main() {
         serv_addr.sin_family = AF_INET;
         serv_addr.sin_port = htons(PORT);
         
-        char serv_ip[] = "127.0.0.1";
+        char serv_ip[] = "100.65.163.12";
         bool invalid_address = inet_pton(AF_INET, serv_ip, &serv_addr.sin_addr) <= 0;
 
         if(invalid_address)     perror("invalid address!"), exit(EXIT_FAILURE);
