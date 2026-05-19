@@ -19,7 +19,6 @@ ui_*.h
 # Qt Creator
 .idea/
 *.pro.user
-Makefile
 
 # IDE
 .vscode/
